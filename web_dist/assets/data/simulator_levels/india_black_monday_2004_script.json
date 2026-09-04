@@ -1,0 +1,59 @@
+{
+  "id": "india_black_monday_2004",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2004-01-22",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 10% from the 2004-01-14 high of 6194, at 5594. Price ended the window 17% above this level.",
+      "derived": {
+        "peak_date": "2004-01-14",
+        "peak_close": 6194.11,
+        "close": 5593.74,
+        "from_peak_pct": 10.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2004-03-18",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 13% from the 2004-01-14 high of 6194, at 5415. Price ended the window 20% above this level.",
+      "derived": {
+        "peak_date": "2004-01-14",
+        "peak_close": 6194.11,
+        "close": 5414.94,
+        "from_peak_pct": 13.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2004-05-14",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 18% from the 2004-01-14 high of 6194, at 5070. Price rebounded 30% above this level later in the window.",
+      "derived": {
+        "peak_date": "2004-01-14",
+        "peak_close": 6194.11,
+        "close": 5069.87,
+        "from_peak_pct": 18.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2004-05-17",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 27% from the 2004-01-14 high of 6194, at 4505. Price rebounded 46% above this level later in the window.",
+      "derived": {
+        "peak_date": "2004-01-14",
+        "peak_close": 6194.11,
+        "close": 4505.16,
+        "from_peak_pct": 27.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

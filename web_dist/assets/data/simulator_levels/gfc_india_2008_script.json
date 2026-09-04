@@ -1,0 +1,189 @@
+{
+  "id": "gfc_india_2008",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 4.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2008-01-18",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 9% from the 2008-01-08 high of 20873, at 19014. Price fell a further 57% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 19013.7,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-01-21",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 16% from the 2008-01-08 high of 20873, at 17605. Price fell a further 54% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 17605.35,
+        "from_peak_pct": 16.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-01-22",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 20% from the 2008-01-08 high of 20873, at 16730. Price fell a further 51% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 16729.94,
+        "from_peak_pct": 20.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-03-07",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 23% from the 2008-01-08 high of 20873, at 15976. Price fell a further 49% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 15975.52,
+        "from_peak_pct": 23.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-03-17",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 29% from the 2008-01-08 high of 20873, at 14809. Price fell a further 45% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 14809.49,
+        "from_peak_pct": 29.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-06-24",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 32% from the 2008-01-08 high of 20873, at 14107. Price ended the window 5% above this level.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 14106.58,
+        "from_peak_pct": 32.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-06-30",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 36% from the 2008-01-08 high of 20873, at 13462. Price ended the window 10% above this level.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 13461.6,
+        "from_peak_pct": 36.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-07-15",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 39% from the 2008-01-08 high of 20873, at 12676. Price ended the window 17% above this level.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 12676.19,
+        "from_peak_pct": 39.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-06",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 43% from the 2008-01-08 high of 20873, at 11802. Price rebounded 31% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 11801.7,
+        "from_peak_pct": 43.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-08",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 46% from the 2008-01-08 high of 20873, at 11328. Price rebounded 37% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 11328.36,
+        "from_peak_pct": 46.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-10",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 50% from the 2008-01-08 high of 20873, at 10528. Price rebounded 47% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 10527.85,
+        "from_peak_pct": 50.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-17",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 52% from the 2008-01-08 high of 20873, at 9975. Price rebounded 55% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 9975.35,
+        "from_peak_pct": 52.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-24",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 58% from the 2008-01-08 high of 20873, at 8701. Price rebounded 78% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 8701.07,
+        "from_peak_pct": 58.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2009-03-05",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 61% from the 2008-01-08 high of 20873, at 8198. Price rebounded 89% above this level later in the window.",
+      "derived": {
+        "peak_date": "2008-01-08",
+        "peak_close": 20873.33,
+        "close": 8197.92,
+        "from_peak_pct": 61.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

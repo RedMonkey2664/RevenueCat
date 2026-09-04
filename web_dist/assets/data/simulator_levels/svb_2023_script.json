@@ -1,0 +1,98 @@
+{
+  "id": "svb_2023",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 3.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2022-12-06",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 3% from the 2022-12-01 high of 4077, at 3941. Price ended the window 6% above this level.",
+      "derived": {
+        "peak_date": "2022-12-01",
+        "peak_close": 4076.57,
+        "close": 3941.26,
+        "from_peak_pct": 3.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-12-19",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 6% from the 2022-12-01 high of 4077, at 3818. Price ended the window 9% above this level.",
+      "derived": {
+        "peak_date": "2022-12-01",
+        "peak_close": 4076.57,
+        "close": 3817.66,
+        "from_peak_pct": 6.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2023-02-21",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 4% from the 2023-02-02 high of 4180, at 3997. Price ended the window 4% above this level.",
+      "derived": {
+        "peak_date": "2023-02-02",
+        "peak_close": 4179.76,
+        "close": 3997.34,
+        "from_peak_pct": 4.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2023-03-10",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 8% from the 2023-02-02 high of 4180, at 3862. Price ended the window 8% above this level.",
+      "derived": {
+        "peak_date": "2023-02-02",
+        "peak_close": 4179.76,
+        "close": 3861.59,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2023-08-15",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 3% from the 2023-07-31 high of 4589, at 4438. Price drifted to -6% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2023-07-31",
+        "peak_close": 4588.96,
+        "close": 4437.86,
+        "from_peak_pct": 3.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2023-09-26",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 7% from the 2023-07-31 high of 4589, at 4274. Price drifted to -2% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2023-07-31",
+        "peak_close": 4588.96,
+        "close": 4273.53,
+        "from_peak_pct": 7.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2023-10-26",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 10% from the 2023-07-31 high of 4589, at 4137. Only 2 trading days remain in this window — too few to say what followed. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2023-07-31",
+        "peak_close": 4588.96,
+        "close": 4137.23,
+        "from_peak_pct": 10.0,
+        "ambiguous": true
+      }
+    }
+  ]
+}

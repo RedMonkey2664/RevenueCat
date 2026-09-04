@@ -1,0 +1,59 @@
+{
+  "id": "china_selloff_2015",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 4.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2015-08-20",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 4% from the 2015-05-21 high of 2131, at 2036. Price ended the window 2% above this level.",
+      "derived": {
+        "peak_date": "2015-05-21",
+        "peak_close": 2130.82,
+        "close": 2035.73,
+        "from_peak_pct": 4.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2015-08-21",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 8% from the 2015-05-21 high of 2131, at 1971. Price ended the window 5% above this level.",
+      "derived": {
+        "peak_date": "2015-05-21",
+        "peak_close": 2130.82,
+        "close": 1970.89,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2015-08-24",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 11% from the 2015-05-21 high of 2131, at 1893. Price ended the window 9% above this level.",
+      "derived": {
+        "peak_date": "2015-05-21",
+        "peak_close": 2130.82,
+        "close": 1893.21,
+        "from_peak_pct": 11.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2016-02-11",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 14% from the 2015-05-21 high of 2131, at 1829. Price ended the window 13% above this level.",
+      "derived": {
+        "peak_date": "2015-05-21",
+        "peak_close": 2130.82,
+        "close": 1829.08,
+        "from_peak_pct": 14.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "id": "gfc_2008",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.5% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2007-11-12",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 8% from the 2007-10-09 high of 1565, at 1439. Price fell a further 53% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1439.18,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-01-15",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 12% from the 2007-10-09 high of 1565, at 1381. Price fell a further 51% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1380.95,
+        "from_peak_pct": 12.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-01-18",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 15% from the 2007-10-09 high of 1565, at 1325. Price fell a further 49% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1325.19,
+        "from_peak_pct": 15.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-03-10",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 19% from the 2007-10-09 high of 1565, at 1273. Price fell a further 47% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1273.37,
+        "from_peak_pct": 19.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-07-14",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 22% from the 2007-10-09 high of 1565, at 1228. Price fell a further 45% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1228.3,
+        "from_peak_pct": 22.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-09-17",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 26% from the 2007-10-09 high of 1565, at 1156. Price fell a further 41% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1156.39,
+        "from_peak_pct": 26.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-09-29",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 29% from the 2007-10-09 high of 1565, at 1106. Price fell a further 39% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1106.42,
+        "from_peak_pct": 29.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-06",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 32% from the 2007-10-09 high of 1565, at 1057. Price fell a further 36% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 1056.89,
+        "from_peak_pct": 32.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-07",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 36% from the 2007-10-09 high of 1565, at 996. Price fell a further 32% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 996.23,
+        "from_peak_pct": 36.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-09",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 42% from the 2007-10-09 high of 1565, at 910. Price ended the window 2% above this level.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 909.92,
+        "from_peak_pct": 42.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-10-24",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 44% from the 2007-10-09 high of 1565, at 877. Price ended the window 6% above this level.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 876.77,
+        "from_peak_pct": 44.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-11-19",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 48% from the 2007-10-09 high of 1565, at 807. Price ended the window 15% above this level.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 806.58,
+        "from_peak_pct": 48.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2008-11-20",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 52% from the 2007-10-09 high of 1565, at 752. Price rebounded 26% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 752.44,
+        "from_peak_pct": 52.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2009-03-02",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 55% from the 2007-10-09 high of 1565, at 701. Price rebounded 35% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-10-09",
+        "peak_close": 1565.15,
+        "close": 700.82,
+        "from_peak_pct": 55.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

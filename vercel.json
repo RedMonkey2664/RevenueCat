@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash tool/vercel_build.sh",
-  "installCommand": "echo 'Flutter SDK is fetched by the build script'",
-  "outputDirectory": "build/web",
+  "buildCommand": "echo 'Serving the prebuilt bundle in web_dist/ — see tool/publish_web.sh'",
+  "installCommand": "echo 'No install step: nothing is built on Vercel'",
+  "outputDirectory": "web_dist",
   "framework": null,
   "rewrites": [
     {
@@ -17,6 +17,24 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/canvaskit/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
         }
       ]
     }
