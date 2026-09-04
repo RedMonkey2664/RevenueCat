@@ -1,0 +1,59 @@
+{
+  "id": "black_monday_1987",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "1987-10-12",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 8% from the 1987-08-25 high of 337, at 309. Price fell a further 28% below this level before the window ended.",
+      "derived": {
+        "peak_date": "1987-08-25",
+        "peak_close": 336.77,
+        "close": 309.39,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "1987-10-15",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 11% from the 1987-08-25 high of 337, at 298. Price drifted to -9% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "1987-08-25",
+        "peak_close": 336.77,
+        "close": 298.08,
+        "from_peak_pct": 11.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "1987-10-16",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 16% from the 1987-08-25 high of 337, at 283. Price drifted to -4% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "1987-08-25",
+        "peak_close": 336.77,
+        "close": 282.7,
+        "from_peak_pct": 16.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "1987-10-19",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 33% from the 1987-08-25 high of 337, at 225. Price ended the window 21% above this level.",
+      "derived": {
+        "peak_date": "1987-08-25",
+        "peak_close": 336.77,
+        "close": 224.84,
+        "from_peak_pct": 33.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

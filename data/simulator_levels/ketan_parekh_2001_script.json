@@ -1,0 +1,202 @@
+{
+  "id": "ketan_parekh_2001",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.5% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2000-02-29",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 8% from the 2000-02-11 high of 5934, at 5447. Price fell a further 52% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 5447.47,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-03-13",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 14% from the 2000-02-11 high of 5934, at 5129. Price fell a further 49% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 5129.22,
+        "from_peak_pct": 14.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-04-04",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 21% from the 2000-02-11 high of 5934, at 4691. Price fell a further 45% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 4691.46,
+        "from_peak_pct": 21.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-04-24",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 24% from the 2000-02-11 high of 5934, at 4511. Price fell a further 42% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 4511.05,
+        "from_peak_pct": 24.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-05-03",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 27% from the 2000-02-11 high of 5934, at 4335. Price fell a further 40% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 4335.29,
+        "from_peak_pct": 27.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-05-12",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 31% from the 2000-02-11 high of 5934, at 4107. Price fell a further 37% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 4107.14,
+        "from_peak_pct": 31.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-05-22",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 34% from the 2000-02-11 high of 5934, at 3920. Price rebounded 27% above this level later in the window.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3920.18,
+        "from_peak_pct": 34.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-10-13",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 37% from the 2000-02-11 high of 5934, at 3739. Price fell a further 30% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3738.93,
+        "from_peak_pct": 37.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2000-10-18",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 39% from the 2000-02-11 high of 5934, at 3594. Price fell a further 28% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3593.63,
+        "from_peak_pct": 39.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2001-04-10",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 42% from the 2000-02-11 high of 5934, at 3458. Price drifted to -8% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3458.39,
+        "from_peak_pct": 42.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2001-04-11",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 44% from the 2000-02-11 high of 5934, at 3325. Price drifted to -4% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3325.46,
+        "from_peak_pct": 44.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2001-04-12",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 46% from the 2000-02-11 high of 5934, at 3184. Price ended the window 0% above this level.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3183.77,
+        "from_peak_pct": 46.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2001-09-12",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 49% from the 2000-02-11 high of 5934, at 3033. Price ended the window 5% above this level.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 3032.71,
+        "from_peak_pct": 49.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2001-09-14",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 52% from the 2000-02-11 high of 5934, at 2830. Price ended the window 13% above this level.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 2830.12,
+        "from_peak_pct": 52.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2001-09-17",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 55% from the 2000-02-11 high of 5934, at 2681. Price rebounded 28% above this level later in the window.",
+      "derived": {
+        "peak_date": "2000-02-11",
+        "peak_close": 5933.56,
+        "close": 2680.98,
+        "from_peak_pct": 55.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

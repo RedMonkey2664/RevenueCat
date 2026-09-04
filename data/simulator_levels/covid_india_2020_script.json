@@ -1,0 +1,85 @@
+{
+  "id": "covid_india_2020",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2020-02-28",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 9% from the 2020-01-14 high of 41953, at 38297. Price ended the window 25% above this level.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 38297.29,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2020-03-09",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 15% from the 2020-01-14 high of 41953, at 35635. Price rebounded 34% above this level later in the window.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 35634.95,
+        "from_peak_pct": 15.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2020-03-12",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 22% from the 2020-01-14 high of 41953, at 32778. Price rebounded 46% above this level later in the window.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 32778.14,
+        "from_peak_pct": 22.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2020-03-16",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 25% from the 2020-01-14 high of 41953, at 31390. Price rebounded 52% above this level later in the window.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 31390.07,
+        "from_peak_pct": 25.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2020-03-18",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 31% from the 2020-01-14 high of 41953, at 28870. Price rebounded 65% above this level later in the window.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 28869.51,
+        "from_peak_pct": 31.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2020-03-23",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 38% from the 2020-01-14 high of 41953, at 25981. Price rebounded 84% above this level later in the window.",
+      "derived": {
+        "peak_date": "2020-01-14",
+        "peak_close": 41952.63,
+        "close": 25981.24,
+        "from_peak_pct": 38.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

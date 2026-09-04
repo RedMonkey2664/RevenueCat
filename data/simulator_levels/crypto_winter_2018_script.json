@@ -1,0 +1,163 @@
+{
+  "id": "crypto_winter_2018",
+  "generated_by": "tool/import_binance_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 11.0% below the last time it asked, while at least 8% under the running peak. A new high resets the ladder. optimal_action is computed from what the series did afterwards, never hand-picked; moments with fewer than 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2017-11-10",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 12% from the 2017-11-04 high of $7357, trading at $6507. Price rebounded 194% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-11-04",
+        "peak_close": 7357.09,
+        "close": 6506.98,
+        "from_peak_pct": 12.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2017-12-09",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 12% from the 2017-12-07 high of $16599, trading at $14656. Price rebounded 30% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-12-07",
+        "peak_close": 16599.0,
+        "close": 14656.07,
+        "from_peak_pct": 12.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2017-12-19",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 9% from the 2017-12-16 high of $19103, trading at $17295. Price fell a further 81% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 17295.2,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2017-12-22",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 30% from the 2017-12-16 high of $19103, trading at $13327. Price rebounded 28% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 13326.61,
+        "from_peak_pct": 30.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-01-16",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 43% from the 2017-12-16 high of $19103, trading at $10900. Price fell a further 71% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 10900.0,
+        "from_peak_pct": 43.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-02-01",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 52% from the 2017-12-16 high of $19103, trading at $9225. Price fell a further 65% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 9224.52,
+        "from_peak_pct": 52.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-02-04",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 57% from the 2017-12-16 high of $19103, trading at $8185. Price rebounded 41% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 8184.81,
+        "from_peak_pct": 57.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-02-05",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 64% from the 2017-12-16 high of $19103, trading at $6940. Price rebounded 66% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 6939.99,
+        "from_peak_pct": 64.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-06-22",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 68% from the 2017-12-16 high of $19103, trading at $6045. Price rebounded 39% above this level later in the window.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 6045.0,
+        "from_peak_pct": 68.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-11-19",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 74% from the 2017-12-16 high of $19103, trading at $4910. Price fell a further 35% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 4910.03,
+        "from_peak_pct": 74.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2018-11-24",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 79% from the 2017-12-16 high of $19103, trading at $3932. Price drifted to -6% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 3932.44,
+        "from_peak_pct": 79.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2018-12-07",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 82% from the 2017-12-16 high of $19103, trading at $3404. Price ended the window 9% above this level.",
+      "derived": {
+        "peak_date": "2017-12-16",
+        "peak_close": 19102.66,
+        "close": 3403.55,
+        "from_peak_pct": 82.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "id": "crypto_bear_2022",
+  "generated_by": "tool/import_binance_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 5.5% below the last time it asked, while at least 8% under the running peak. A new high resets the ladder. optimal_action is computed from what the series did afterwards, never hand-picked; moments with fewer than 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2022-02-17",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 9% from the 2022-02-15 high of $44545, trading at $40516. Price fell a further 61% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-02-15",
+        "peak_close": 44544.86,
+        "close": 40515.7,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-02-21",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 17% from the 2022-02-15 high of $44545, trading at $37008. Price rebounded 28% above this level later in the window.",
+      "derived": {
+        "peak_date": "2022-02-15",
+        "peak_close": 44544.86,
+        "close": 37008.16,
+        "from_peak_pct": 17.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-04-06",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 9% from the 2022-03-29 high of $47435, trading at $43170. Price fell a further 63% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 43170.47,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-04-11",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 17% from the 2022-03-29 high of $47435, trading at $39530. Price fell a further 60% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 39530.45,
+        "from_peak_pct": 17.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-05-05",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 23% from the 2022-03-29 high of $47435, trading at $36553. Price fell a further 57% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 36552.97,
+        "from_peak_pct": 23.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-05-08",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 28% from the 2022-03-29 high of $47435, trading at $34038. Price fell a further 54% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 34038.4,
+        "from_peak_pct": 28.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-05-09",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 37% from the 2022-03-29 high of $47435, trading at $30076. Price fell a further 48% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 30076.31,
+        "from_peak_pct": 37.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-06-12",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 44% from the 2022-03-29 high of $47435, trading at $26575. Price fell a further 41% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 26574.53,
+        "from_peak_pct": 44.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-06-13",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "sell",
+      "reveal_headline": "Down 53% from the 2022-03-29 high of $47435, trading at $22487. Price fell a further 30% below this level before the window ended.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 22487.41,
+        "from_peak_pct": 53.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-06-16",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 57% from the 2022-03-29 high of $47435, trading at $20401. Price drifted to -19% from this level without a clear recovery or a further collapse. The data does not support a clean \"right\" answer here.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 20401.31,
+        "from_peak_pct": 57.0,
+        "ambiguous": true
+      }
+    },
+    {
+      "trigger_date": "2022-06-18",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 60% from the 2022-03-29 high of $47435, trading at $18971. Price rebounded 29% above this level later in the window.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 18970.79,
+        "from_peak_pct": 60.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2022-11-09",
+      "flash_treatment": "red_flash_hard",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 66% from the 2022-03-29 high of $47435, trading at $15923. Price ended the window 4% above this level.",
+      "derived": {
+        "peak_date": "2022-03-29",
+        "peak_close": 47434.8,
+        "close": 15922.81,
+        "from_peak_pct": 66.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

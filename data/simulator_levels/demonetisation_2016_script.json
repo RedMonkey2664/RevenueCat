@@ -1,0 +1,46 @@
+{
+  "id": "demonetisation_2016",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 3.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2016-09-29",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 4% from the 2016-09-08 high of 29045, at 27828. Price ended the window 11% above this level.",
+      "derived": {
+        "peak_date": "2016-09-08",
+        "peak_close": 29045.28,
+        "close": 27827.53,
+        "from_peak_pct": 4.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2016-11-11",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 8% from the 2016-09-08 high of 29045, at 26819. Price ended the window 15% above this level.",
+      "derived": {
+        "peak_date": "2016-09-08",
+        "peak_close": 29045.28,
+        "close": 26818.82,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2016-11-21",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 11% from the 2016-09-08 high of 29045, at 25765. Price ended the window 20% above this level.",
+      "derived": {
+        "peak_date": "2016-09-08",
+        "peak_close": 29045.28,
+        "close": 25765.14,
+        "from_peak_pct": 11.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

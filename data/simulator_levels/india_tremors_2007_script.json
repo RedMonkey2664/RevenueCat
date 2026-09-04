@@ -1,0 +1,59 @@
+{
+  "id": "india_tremors_2007",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2007-02-27",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 8% from the 2007-02-08 high of 14652, at 13479. Price rebounded 51% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-02-08",
+        "peak_close": 14652.09,
+        "close": 13478.83,
+        "from_peak_pct": 8.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2007-02-28",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 12% from the 2007-02-08 high of 14652, at 12938. Price rebounded 57% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-02-08",
+        "peak_close": 14652.09,
+        "close": 12938.09,
+        "from_peak_pct": 12.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2007-03-05",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 15% from the 2007-02-08 high of 14652, at 12415. Price rebounded 64% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-02-08",
+        "peak_close": 14652.09,
+        "close": 12415.04,
+        "from_peak_pct": 15.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2007-08-16",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 9% from the 2007-07-24 high of 15795, at 14358. Price rebounded 42% above this level later in the window.",
+      "derived": {
+        "peak_date": "2007-07-24",
+        "peak_close": 15794.92,
+        "close": 14358.21,
+        "from_peak_pct": 9.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

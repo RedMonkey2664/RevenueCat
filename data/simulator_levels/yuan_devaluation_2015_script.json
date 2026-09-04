@@ -1,0 +1,59 @@
+{
+  "id": "yuan_devaluation_2015",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 8.0% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2015-08-24",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 10% from the 2015-07-22 high of 28505, at 25742. Price ended the window 4% above this level.",
+      "derived": {
+        "peak_date": "2015-07-22",
+        "peak_close": 28504.93,
+        "close": 25741.56,
+        "from_peak_pct": 10.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2015-09-07",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 13% from the 2015-07-22 high of 28505, at 24894. Price ended the window 7% above this level.",
+      "derived": {
+        "peak_date": "2015-07-22",
+        "peak_close": 28504.93,
+        "close": 24893.81,
+        "from_peak_pct": 13.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2016-01-20",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 16% from the 2015-07-22 high of 28505, at 24062. Price ended the window 11% above this level.",
+      "derived": {
+        "peak_date": "2015-07-22",
+        "peak_close": 28504.93,
+        "close": 24062.04,
+        "from_peak_pct": 16.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2016-02-11",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 19% from the 2015-07-22 high of 28505, at 22952. Price ended the window 17% above this level.",
+      "derived": {
+        "peak_date": "2015-07-22",
+        "peak_close": 28504.93,
+        "close": 22951.83,
+        "from_peak_pct": 19.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}

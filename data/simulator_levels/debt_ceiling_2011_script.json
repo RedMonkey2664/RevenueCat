@@ -1,0 +1,46 @@
+{
+  "id": "debt_ceiling_2011",
+  "generated_by": "tool/import_yahoo_level.dart",
+  "derivation": "Pause points form a ladder: the script asks again each time price falls a further 3.0% below the last time it asked, while at least 4.5% under the running peak. optimal_action is computed from what the series did next; moments with under 20 trading days remaining are marked ambiguous.",
+  "pause_points": [
+    {
+      "trigger_date": "2011-06-06",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 6% from the 2011-05-02 high of 1361, at 1286. Price ended the window 10% above this level.",
+      "derived": {
+        "peak_date": "2011-05-02",
+        "peak_close": 1361.22,
+        "close": 1286.17,
+        "from_peak_pct": 6.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2011-08-04",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "hold",
+      "reveal_headline": "Down 12% from the 2011-05-02 high of 1361, at 1200. Price ended the window 17% above this level.",
+      "derived": {
+        "peak_date": "2011-05-02",
+        "peak_close": 1361.22,
+        "close": 1200.07,
+        "from_peak_pct": 12.0,
+        "ambiguous": false
+      }
+    },
+    {
+      "trigger_date": "2011-08-08",
+      "flash_treatment": "amber_flash_soft",
+      "optimal_action": "buy_dip",
+      "reveal_headline": "Down 18% from the 2011-05-02 high of 1361, at 1119. Price rebounded 27% above this level later in the window.",
+      "derived": {
+        "peak_date": "2011-05-02",
+        "peak_close": 1361.22,
+        "close": 1119.46,
+        "from_peak_pct": 18.0,
+        "ambiguous": false
+      }
+    }
+  ]
+}
