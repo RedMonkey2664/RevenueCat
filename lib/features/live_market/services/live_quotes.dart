@@ -17,6 +17,14 @@ class LiveQuotes extends Notifier<LiveQuotesState> {
   Timer? _timer;
   bool _polling = false;
 
+  /// Guards against overlapping refreshes.
+  ///
+  /// Two fire back-to-back at startup — one from [build], one from the screen
+  /// calling [setPolling] — and a slow poll can also still be in flight when
+  /// the next timer tick lands. Without this the watchlist was fetched twice
+  /// on open and every failure was reported twice.
+  bool _inFlight = false;
+
   /// Fast enough to feel live, slow enough to stay well inside the free
   /// rate limits with a 30-symbol watchlist.
   static const Duration interval = Duration(seconds: 15);
@@ -49,12 +57,17 @@ class LiveQuotes extends Notifier<LiveQuotesState> {
   }
 
   Future<void> refresh({bool force = false}) async {
+    // A forced refresh is a deliberate user action (pull-to-refresh), so it
+    // waits its turn rather than being dropped.
+    if (_inFlight && !force) return;
+
     final List<Instrument> instruments = ref.read(watchlistProvider);
     if (instruments.isEmpty) {
       state = const LiveQuotesState(loading: false);
       return;
     }
 
+    _inFlight = true;
     state = state.copyWith(loading: true);
     try {
       final Map<String, Quote> quotes = await ref
@@ -74,6 +87,8 @@ class LiveQuotes extends Notifier<LiveQuotesState> {
     } on Object catch (error) {
       debugPrint('Quote refresh failed: $error');
       state = state.copyWith(loading: false, error: error.toString());
+    } finally {
+      _inFlight = false;
     }
   }
 }
