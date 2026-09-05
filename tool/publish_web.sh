@@ -11,9 +11,18 @@
 # for environment reasons. `build/` stays gitignored (Flutter's default);
 # web_dist/ is the explicit, reviewable artefact.
 #
-# This is a PREVIEW. The product ships on iOS and Android. On web,
-# share_plus file sharing and local notifications do not work; Time Machine is
-# the only pillar that is fully functional in a browser.
+# This is a PREVIEW. The product ships on iOS and Android. What does NOT work
+# in a browser, and why:
+#
+#   - Equity quotes and charts (US + India). Yahoo sends no CORS header, so
+#     the browser blocks the request and those rows read "unavailable". Crypto
+#     works, because Binance sends "Access-Control-Allow-Origin: *". There is
+#     no CORS on iOS or Android, where every market resolves.
+#   - share_plus file sharing, and local notifications.
+#
+# Fully functional in a browser: the Simulator (campaign and Endless run on
+# bundled data), Time Machine, and the crypto half of Live Markets and the
+# Custom Simulation.
 
 set -euo pipefail
 
