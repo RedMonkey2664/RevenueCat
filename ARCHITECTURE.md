@@ -2,10 +2,11 @@
 
 ## High-level shape
 
-    ┌───────────────────────────────────────────────────────────┐
-    │                        App Shell (3 tabs)                  │
-    │   Simulator (Campaign/Endless) | Daily Pivot | Time Machine │
-    └───────┬──────────────────────┬───────────────────┬────────┘
+    ┌────────────────────────────────────────────────────────────┐
+    │                       App Shell (4 tabs)                    │
+    │  Simulator | Markets | Daily Pivot | Time Machine           │
+    │  (Campaign / Endless / Custom)                              │
+    └───────┬──────────────────────┬───────────────────┬─────────┘
             │                      │                   │
     ┌───────┴───────┐    ┌─────────┴────────┐  ┌───────┴────────┐
     │ SIMULATOR      │    │  DAILY PIVOT      │  │  TIME MACHINE   │
@@ -23,9 +24,24 @@
                 │ (local)        │      │ (all 3 pillars)  │
                 └───────────────┘      └─────────────────┘
 
-Only the Daily Pivot touches a backend. Simulator and Time Machine are fully
-client-side (bundled data / live public API respectively) — keep it that way; don't
-let backend dependency creep into the other two pillars.
+Only the Daily Pivot touches a backend **of ours**. That rule stands: no server
+we deploy, outside the Pivot's Firestore and its two scheduled functions.
+
+**Revised:** this document used to say the Simulator was fully local and must
+stay that way. Live Markets and the Custom Simulation both query market data at
+runtime, and the Custom Simulation feeds that data straight into the Simulator's
+engine. That is a live *data source*, not a backend — the same posture
+CLAUDE.md already accepts for Time Machine ("queried live, not bundled"). The
+campaign and Endless modes remain fully offline on bundled data, which is what
+blind mode needs.
+
+    core/market/  ── MarketDataService ── Binance   (crypto, real-time)
+                                       ├─ Yahoo     (US + India equity, delayed)
+                                       └─ KotakNeo  (India, opt-in, unfinished)
+
+The service is the only thing that talks to a provider. Screens ask it, never a
+provider directly, so replacing a source for a market is one change in
+`_providerFor`.
 
 ## Folder structure
 
@@ -35,12 +51,35 @@ let backend dependency creep into the other two pillars.
         router.dart              # 3-tab shell
         theme.dart                # DESIGN.md tokens
       core/
+        indicators/
+          indicators.dart         # SMA/EMA/RSI/Bollinger/MACD — shared by chart + engine
+        market/
+          candle.dart             # the one bar model, re-exported by the engine
+          bar_interval.dart       # timeframes, shared by providers + chart
+          instrument.dart         # Instrument, Quote, MarketRegion, session hours
+          instrument_catalog.dart # bundled symbols, seeds search + watchlist
+          market_data_provider.dart
+          market_data_service.dart # routing, caching, request de-duplication
+          broker_credentials.dart  # on-device Kotak credentials + session
+          providers/               # binance / yahoo / kotak_neo
         services/
           progress_service.dart   # local: cleared levels, Discipline Points, streak
           purchases_service.dart  # RevenueCat wrapper
-          crypto_api_service.dart # CoinGecko/Binance client, shared by Pivot + Time Machine
+          crypto_api_service.dart # Binance client, shared by Pivot + Time Machine
       features/
+        chart/                    # the shared pro chart — used by all three below
+          pro_chart.dart
+          model/                  # types, series aggregation, viewport, drawings
+          painters/               # base layer + crosshair layer
+          widgets/                # toolbar, indicator sheet, OHLC legend
+          services/chart_preferences.dart
+        live_market/
+          live_market_home.dart   # watchlist
+          instrument_detail_screen.dart
+          broker_connect_screen.dart
+          services/               # watchlist + polled quotes
         simulator/
+          custom/                 # Custom Simulation: setup screen + level builder
           engine/
             replay_controller.dart
             decision_engine.dart      # Hold/Sell/Buy scoring — see ENGINE.md
@@ -120,9 +159,32 @@ let backend dependency creep into the other two pillars.
    Instagram/other targets. No account or gameplay state required to use this tab.
 
 ## Explicit non-goals for architecture
-- No backend for Simulator or Time Machine — resist adding one even if it would be
-  "easier" for some feature; it isn't needed and adds review/deploy surface area
-  this close to the deadline.
+- No backend **of ours** for Simulator or Time Machine — resist adding one even if
+  it would be "easier" for some feature; it isn't needed and adds review/deploy
+  surface area this close to the deadline. Querying a third-party market API at
+  runtime is not that, and is how Live Markets and the Custom Simulation work.
+- No order placement, ever. Live Markets displays prices and the broker
+  integration is read-only. The app must never be able to move real money.
 - No user accounts/auth beyond RevenueCat's anonymous app-user-id and an anonymous
   Firebase identity for Pivot vote deduplication (one vote per user per day).
 - No real-money mechanics in the Daily Pivot, ever — Discipline Points only.
+
+## Data flow — Live Markets
+
+1. `watchlistProvider` holds the user's instruments, persisted whole (not by id,
+   since a searched symbol may not be in the bundled catalog).
+2. `liveQuotesProvider` polls `MarketDataService` every 15s, and only while the
+   app is foregrounded.
+3. Tapping a row opens the instrument's chart. The chart asks the service for
+   history at whichever interval the provider natively supports; anything
+   coarser is folded client-side by `ChartSeries.aggregate`.
+
+## Data flow — Custom Simulation
+
+1. User picks an instrument, a date range and a timeframe.
+2. `MarketDataService` fetches the window live.
+3. `CustomSimBuilder` turns it into an ordinary `SimulationLevel`, deriving
+   pause points with the same `PauseLadder` the campaign importer uses.
+4. From there it is the standard Simulator flow — same engine, same scoring,
+   same debrief. The only difference is `revealFromStart: true`, since the
+   player chose the instrument and there is nothing for blind mode to hide.

@@ -62,6 +62,21 @@ Before Phase 1, confirm outside of Claude Code (Somi):
   Score/Points visual language identical across Simulator/Pivot/Profile.
 - SIMULATED/illustrative framing present everywhere required (CLAUDE.md/DESIGN.md).
 
+## Phase 7b — Live Markets, Custom Simulation, pro chart (DONE)
+Added after the original plan, at Somi's request, and built before Phase 8.
+- Shared `features/chart/` — one interactive chart for every screen that draws
+  prices. Replaces the fl_chart view and DESIGN.md's dummy console chrome.
+- `core/market/` — provider abstraction over Binance (crypto) and Yahoo (equity),
+  with routing, caching and de-duplication. Kotak Neo is structurally present but
+  its wire calls need the official API spec before they can be written.
+- Live Markets tab; Custom Simulation over any instrument, range and timeframe.
+
+Open items carried forward:
+- Kotak Neo: needs the consumer key/secret and the endpoint documentation.
+- Yahoo is queried live rather than bundled, which is materially lower-risk than
+  the campaign levels — but it is not a clearance. Same unresolved question as
+  the levels, in a milder form.
+
 ## Phase 8 — RevenueCat + store submission prep (2-3 days)
 - Full MONETIZATION.md checklist: offerings, entitlement gates (campaign lock,
   endless lock only), paywall, restore purchases, sandbox-test both platforms.

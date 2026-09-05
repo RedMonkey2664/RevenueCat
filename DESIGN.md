@@ -15,7 +15,8 @@ reads as one product, not three bolted-together features.
 - Standard UI font for narrative/body text (script reveals, Daily Pivot copy).
 
 ## Screen inventory
-1. **App shell** — 3-tab bottom nav: Simulator / Daily Pivot / Time Machine.
+1. **App shell** — 4-tab bottom nav: Simulator / Markets / Daily Pivot /
+   Time Machine. ("Markets" is Live Markets, added with the live-data work.)
 2. **Simulator: Campaign home** — 15-level map (grid, per original spec's fallback
    recommendation — see ROADMAP.md).
 3. **Simulator: Endless home** — simpler entry screen, "start a random run."
@@ -36,23 +37,42 @@ reads as one product, not three bolted-together features.
   and never implies future guaranteed returns (see TIME_MACHINE.md copy guardrails).
 - Onboarding (2-3 screens max, shown once) states plainly across all three pillars:
   no real money, no real trading, no live brokerage, educational/illustrative only.
+- **Live Markets carries the inverse disclosure.** It is the one screen whose
+  numbers are real, so it must say so — real prices, possibly delayed, no orders
+  placeable here — and must NOT wear a SIMULATED badge. Blurring the two is what
+  would make the badge meaningless everywhere else. A Custom Simulation is the
+  other way round: real prices, simulated trading, so it keeps the badge.
 
-## Real vs. dummy — Simulator (chart chrome)
+## Chart chrome — all real (revised)
 
-REAL: candlestick chart (one timeframe), SMA + RSI toggle, replay speed (1x/2x/4x),
-Hold/Sell All/Buy the Dip decision panel, blind-mode hide/reveal, Discipline Score +
-P&L computation, campaign level map, endless mode window generation.
+**This section was rewritten.** It used to list most console chrome as
+deliberately inert. Somi asked for a working TradingView-style chart instead, so
+the dummy layer is gone from the Simulator and the rule is inverted.
 
-DUMMY/LOCKED (visible, tappable, clearly inert — never silently missing, never
-crash): additional chart types (Line, Heikin-Ashi, Bar), additional timeframes
-(1m/5m/1H/1W next to the real 1D), additional indicators (MACD, Bollinger Bands,
-Volume Profile), drawing tools (trendline/rectangle/annotation icons that open a
-"Coming soon" state), a watchlist/multi-symbol switcher implying more markets exist,
-extra replay speeds (0.5x, 8x+) alongside the three real ones.
+One chart widget (`features/chart/pro_chart.dart`) serves the Simulator, Live
+Markets and the Custom Simulation.
 
-Rule of thumb: if it's core to the decision-under-pressure feeling, it's real. If
-it's console chrome that makes the screen *look* like a full terminal without being
-load-bearing for the game, it's a dummy candidate.
+REAL, everywhere the chart appears: candlesticks, Heikin-Ashi, line and area;
+pan, pinch-zoom, crosshair with an OHLC readout, price-axis drag and autoscale;
+linear/percent/log price scales; timeframe switching; SMA, EMA and Bollinger
+overlays plus volume, RSI and MACD panes; trendline, price-line and rectangle
+drawing tools, anchored to time and price so they survive a timeframe change.
+Plus the Simulator's own: replay speed (1x/2x/4x), the decision panel, blind
+mode, Discipline Score and P&L.
+
+**The replacement rule — absent, not inert.** A control the host cannot serve
+must not appear at all. A campaign level's bars are daily, so its toolbar offers
+1D/1W/1M and no intraday; a live crypto chart offers everything from 1m up. This
+is the opposite of the old rule and is enforced mechanically by
+`test/design/chart_controls_test.dart`, which replaced `dummy_chrome_test.dart`.
+
+Still genuinely locked: the extra replay speeds (0.5x, 8x) named below, which
+belong to the replay rather than the chart.
+
+What has NOT changed: blind mode. During a Simulator run neither an absolute
+price nor a real date may reach the screen. `BlindChartLabels` enforces it by
+rebasing every value the chart renders to an index of 100, so a new chart
+feature cannot leak the asset by forgetting a flag.
 
 ## Real vs. dummy — Daily Pivot & Time Machine
 Both pillars are intentionally small in scope already (see their own spec files) —

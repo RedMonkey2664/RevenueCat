@@ -1,7 +1,8 @@
 # CLAUDE.md — Project Context: Market Nerve
 
 ## What this app is
-Three connected parts under one app:
+Four connected parts under one app (the fourth was added after the original
+brief — see "Added later" below):
 - **Behavioral Simulator** (core): fast-forwarded historical crash replays where the
   user makes a Hold/Sell/Buy-the-Dip call at scripted pause points, graded on a
   Discipline Score against the historically optimal move. Campaign (15 handcrafted
@@ -10,17 +11,29 @@ Three connected parts under one app:
   sentiment reveal, bonus Discipline Points for correct/contrarian calls.
 - **Time Machine** (growth): a "what if" compounding calculator with a shareable
   neon result graphic, no login/gameplay required to use it.
+- **Live Markets** (added later): a watchlist of real current prices across US
+  equity, Indian equity and crypto, each opening a full interactive chart. Read
+  only — it displays prices and cannot place an order.
 
 Built for RevenueCat Shipaton 2026. Deadline: Sep 30, 2026, 11:45pm PT, app must be
 **fully published**, not in review.
 
 ## What this app is NOT
-- Not a real trading app. No real money anywhere in any of the three pillars.
-- Not a full TradingView clone in the Simulator — it looks like a trading console;
-  most console chrome beyond the core decision-and-score loop is intentionally
-  dummy/locked (see DESIGN.md).
-- Not a custom-strategy backtester. The Simulator is decision-at-a-pause-point, not
-  manual continuous trading and not a programmable strategy engine.
+- Not a real trading app. No real money anywhere, in any pillar, ever. Live
+  Markets shows real prices; it places no orders and never will.
+- Not a custom-strategy backtester. The Simulator replays history and asks you to
+  act in it; it is not a programmable strategy engine.
+
+### Revised by Somi's request (previously listed here as non-goals)
+- **A TradingView-style chart is now in scope.** This file used to say most
+  console chrome was intentionally dummy/locked. It is real: one chart widget
+  with pan/zoom, a crosshair, four chart types, real timeframes, six indicators
+  and three drawing tools, shared by every screen that draws prices. DESIGN.md's
+  real/dummy map has been rewritten to match. The replacement rule is "a control
+  the host cannot serve is absent, not inert".
+- **Manual continuous trading is now in scope**, through advanced mode and the
+  Custom Simulation. `simulation_mode.dart` had flagged this contradiction since
+  advanced mode was built; it is resolved here rather than left standing.
 - The Daily Pivot is not a real-money betting product — "betting against the crowd"
   earns in-app Discipline Points only, never currency or withdrawable value. Keep
   this legally and visually unambiguous.
@@ -40,9 +53,12 @@ Built for RevenueCat Shipaton 2026. Deadline: Sep 30, 2026, 11:45pm PT, app must
   for the 5pm resolution check against the crypto API) as the default choice — it's
   the lowest-setup-cost option that still satisfies both needs. Do not build a
   backend for the Simulator or Time Machine; both stay fully local/bundled-data.
-- Live data: CoinGecko (or Binance) public API, used live at query time for (a) the
-  Daily Pivot's 9am question setup and 5pm resolution, and (b) Time Machine's
-  historical price lookups. Not bundled/redistributed — queried live, so
+- Live data: public market APIs, queried at runtime, never bundled — (a) the
+  Daily Pivot's 9am setup and 5pm resolution, (b) Time Machine's historical
+  lookups, and (c) Live Markets and the Custom Simulation. Binance serves crypto
+  (no key, real-time, 24/7); Yahoo serves US and Indian equity (no key, delayed).
+  Kotak Neo is an optional per-user broker connection for real-time NSE/BSE,
+  structurally in place but not finished — see `kotak_neo_provider.dart`. Not bundled/redistributed — queried live, so
   redistribution-license concerns from the Simulator's bundled datasets don't apply
   here. Respect the free-tier rate limits; cache a day's price data locally rather
   than re-querying repeatedly.
@@ -66,8 +82,14 @@ Built for RevenueCat Shipaton 2026. Deadline: Sep 30, 2026, 11:45pm PT, app must
 - Every screen touching virtual money must be unmistakably simulated (see
   DESIGN.md's badge/copy rules) — applies to the Simulator and, differently, to
   Time Machine's "you missed X" framing (it's illustrative math, not advice).
-- Dummy/locked console features must be visibly present, tappable, and clearly
-  labeled — never silently missing, never crash-on-tap.
+- **Live Markets carries the inverse label**, and it is just as non-negotiable:
+  real prices, possibly delayed, no orders placeable. A user must never be
+  unsure which of the two they are looking at. A Custom Simulation is real
+  prices with simulated trading, so it keeps the SIMULATED badge.
+- Every live number on screen must be able to say where it came from. The source
+  is displayed, not assumed.
+- Replaces the old dummy-chrome rule: a control the current screen cannot
+  actually serve is **absent**, not present-and-inert.
 
 ## Working style for this repo
 - Commit after each working phase from ROADMAP.md, not mid-feature.
