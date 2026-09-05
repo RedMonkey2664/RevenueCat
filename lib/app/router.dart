@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/daily_pivot/pivot_home.dart';
+import '../features/live_market/live_market_home.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/simulator/campaign/campaign_home.dart';
 import '../features/time_machine/calculator_screen.dart';
@@ -22,8 +23,13 @@ class AppRoot extends ConsumerWidget {
   }
 }
 
-/// The three-tab shell (ARCHITECTURE.md). Each tab keeps its own navigator so
-/// a Simulator run in progress is not torn down by a trip to Time Machine.
+/// The tab shell. Each tab keeps its own navigator so a Simulator run in
+/// progress is not torn down by a trip to Time Machine.
+///
+/// ARCHITECTURE.md describes three tabs; Live Markets is a fourth, added with
+/// the live-data features. Four fits a phone bottom bar comfortably; a fifth
+/// would not, which is why the Custom Simulation is reached from inside the
+/// Simulator and Live Markets rather than getting a tab of its own.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -39,6 +45,11 @@ class _AppShellState extends State<AppShell> {
       label: 'Simulator',
       icon: Icons.candlestick_chart_outlined,
       activeIcon: Icons.candlestick_chart,
+    ),
+    _Tab(
+      label: 'Markets',
+      icon: Icons.show_chart_outlined,
+      activeIcon: Icons.show_chart,
     ),
     _Tab(
       label: 'Daily Pivot',
@@ -59,6 +70,7 @@ class _AppShellState extends State<AppShell> {
         index: _index,
         children: const <Widget>[
           _TabNavigator(child: CampaignHome()),
+          _TabNavigator(child: LiveMarketHome()),
           _TabNavigator(child: PivotHome()),
           _TabNavigator(child: CalculatorScreen()),
         ],
@@ -163,6 +175,8 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               tab.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppText.label(
                 color: color,
                 size: 9,

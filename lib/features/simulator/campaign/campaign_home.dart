@@ -8,6 +8,7 @@ import '../../../core/services/progress_service.dart';
 import '../../../data/sample/dev_sample_level.dart';
 import '../../profile/profile_screen.dart';
 import '../engine/level_model.dart';
+import '../custom/custom_sim_setup_screen.dart';
 import '../endless/endless_home.dart';
 import '../engine/simulation_mode.dart';
 import '../level/level_screen.dart';
@@ -109,10 +110,26 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _EndlessCard(
+                _ModeCard(
+                  icon: Icons.shuffle,
+                  title: 'Endless',
+                  subtitle: 'A random six-month window you have never seen.',
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => EndlessHome(mode: _mode),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ModeCard(
+                  icon: Icons.tune,
+                  title: 'Custom simulation',
+                  subtitle:
+                      'Pick any instrument and any dates. Real prices, '
+                      'fetched live.',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CustomSimSetupScreen(),
                     ),
                   ),
                 ),
@@ -637,11 +654,22 @@ class _MarketChip extends StatelessWidget {
   }
 }
 
-/// Entry to Endless mode. Sits under the dev run and above the campaign map,
-/// because it is a different *kind* of thing from a numbered level.
-class _EndlessCard extends StatelessWidget {
-  const _EndlessCard({required this.onTap});
+/// Entry to a run that is not a numbered campaign level.
+///
+/// Endless and the Custom Simulation are different *kinds* of thing from a
+/// level, so they sit above the map rather than in it — and they share one
+/// card so the two never drift apart visually.
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
@@ -670,11 +698,7 @@ class _EndlessCard extends StatelessWidget {
                 color: AppColors.accent.withValues(alpha: 0.14),
                 borderRadius: AppRadius.chip,
               ),
-              child: const Icon(
-                Icons.shuffle,
-                size: 17,
-                color: AppColors.accent,
-              ),
+              child: Icon(icon, size: 17, color: AppColors.accent),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -682,12 +706,12 @@ class _EndlessCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Endless',
+                    title,
                     style: AppText.body(size: 15, weight: FontWeight.w600),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'A random six-month window you have never seen.',
+                    subtitle,
                     style: AppText.body(
                       size: 12.5,
                       color: AppColors.textSecondary,

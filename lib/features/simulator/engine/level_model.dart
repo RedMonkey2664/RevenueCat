@@ -19,6 +19,7 @@ class SimulationLevel {
     required List<PausePoint> pausePoints,
     this.description,
     this.isSyntheticSample = false,
+    this.revealFromStart = false,
   })  : assert(candles.length > 1, 'A level needs at least two candles'),
         pausePoints = List<PausePoint>.unmodifiable(
           pausePoints.toList()
@@ -70,6 +71,14 @@ class SimulationLevel {
   /// True only for the development sample run, which uses generated numbers.
   /// Every screen that could be mistaken for a historical claim must say so.
   final bool isSyntheticSample;
+
+  /// Skips blind mode (ENGINE.md §3) for this run.
+  ///
+  /// Only the Custom Simulation sets it. Blind mode exists so a campaign
+  /// level cannot be recognised before it is played; when the player chose
+  /// the instrument and the dates themselves there is nothing left to hide,
+  /// and hiding it anyway would just make the axes unreadable.
+  final bool revealFromStart;
 
   int get length => candles.length;
 

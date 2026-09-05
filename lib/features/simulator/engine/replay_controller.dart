@@ -79,7 +79,7 @@ class ReplayState {
       ),
       decisions: const <RecordedDecision>[],
       resolvedPauseIndices: const <int>{},
-      isRevealed: false,
+      isRevealed: level.revealFromStart,
     );
   }
 
