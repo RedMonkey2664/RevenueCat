@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../bar_interval.dart';
@@ -33,7 +34,27 @@ class YahooMarketProvider extends MarketDataProvider {
 
   static const String _host = 'query1.finance.yahoo.com';
 
+  /// Same-origin proxy used by the web build only (`api/yahoo.js`).
+  ///
+  /// Yahoo sends no `Access-Control-Allow-Origin`, so a browser discards the
+  /// response and every equity row reads "unavailable". Native builds have no
+  /// CORS and call Yahoo directly — going through the proxy there would add a
+  /// hop, a dependency and a shared rate-limit bucket for nothing.
+  static const String _webProxyPath = '/api/yahoo';
+
   final http.Client _client;
+
+  /// Builds a request URL, routed through the proxy on web.
+  ///
+  /// Resolved against [Uri.base] rather than left relative: `package:http`
+  /// requires an absolute URL, and `Uri.base` is the page origin on web, so
+  /// this follows the deployment without the URL being configured anywhere.
+  static Uri _endpoint(String path, Map<String, String> params) {
+    if (!kIsWeb) return Uri.https(_host, path, params);
+    return Uri.base.resolve(_webProxyPath).replace(
+          queryParameters: <String, String>{'path': path, ...params},
+        );
+  }
 
   @override
   String get id => 'yahoo';
@@ -169,7 +190,7 @@ class YahooMarketProvider extends MarketDataProvider {
   Future<List<Instrument>> search(String query) async {
     if (query.trim().isEmpty) return const <Instrument>[];
 
-    final Uri uri = Uri.https(_host, '/v1/finance/search', <String, String>{
+    final Uri uri = _endpoint('/v1/finance/search', <String, String>{
       'q': query,
       'quotesCount': '12',
       'newsCount': '0',
@@ -224,11 +245,8 @@ class YahooMarketProvider extends MarketDataProvider {
   }) async {
     // Uri.https encodes the path itself; pre-encoding '^' gave %255E and a
     // 404 when the importer first tried it.
-    final Uri uri = Uri.https(
-      _host,
-      '/v8/finance/chart/${instrument.symbol}',
-      params,
-    );
+    final Uri uri =
+        _endpoint('/v8/finance/chart/${instrument.symbol}', params);
 
     final Object? json = await fetchJson(
       _client,

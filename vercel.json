@@ -6,7 +6,8 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "_comment": "Everything except /api/* is the Flutter SPA. Without the negative lookahead this rewrite swallows the Yahoo CORS proxy and returns index.html to it.",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
