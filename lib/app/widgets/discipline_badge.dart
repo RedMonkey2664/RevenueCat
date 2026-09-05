@@ -49,32 +49,46 @@ class DisciplineScoreDial extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        // Both rows shrink rather than overflow: the dial is laid out beside
+        // the P&L on the Debrief, so on a 375pt phone it gets roughly half the
+        // width -- 26pt and 30pt short respectively before this.
         Row(
           children: <Widget>[
             Icon(DisciplineVisuals.icon, size: 14, color: color),
             const SizedBox(width: AppSpacing.xs),
-            Text('DISCIPLINE SCORE', style: AppText.label(color: color)),
+            Flexible(
+              child: Text(
+                'DISCIPLINE SCORE',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.label(color: color),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.xs),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: <Widget>[
-            Text(
-              score?.toString() ?? '—',
-              style: AppText.mono(
-                size: 52,
-                weight: FontWeight.w700,
-                color: color,
-              ),
-            ),
-            if (score != null)
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: <Widget>[
               Text(
-                ' / 100',
-                style: AppText.mono(size: 16, color: AppColors.textFaint),
+                score?.toString() ?? '—',
+                style: AppText.mono(
+                  size: 52,
+                  weight: FontWeight.w700,
+                  color: color,
+                ),
               ),
-          ],
+              if (score != null)
+                Text(
+                  ' / 100',
+                  style: AppText.mono(size: 16, color: AppColors.textFaint),
+                ),
+            ],
+          ),
         ),
         Text(
           DisciplineVisuals.verdictFor(score),

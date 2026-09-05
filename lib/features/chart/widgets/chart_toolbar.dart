@@ -19,6 +19,7 @@ class ChartToolbar extends StatelessWidget {
     this.onClearDrawings,
     this.drawingCount = 0,
     this.dense = false,
+    this.showScaleToggle = true,
     super.key,
   });
 
@@ -33,6 +34,11 @@ class ChartToolbar extends StatelessWidget {
 
   /// Drops the timeframe row — used where vertical space is tight.
   final bool dense;
+
+  /// False during a blind-mode run. The scale is pinned to percent there so
+  /// the gridlines land on round moves; offering Linear would only produce an
+  /// axis of odd index values, since [ChartLabels] rebases either way.
+  final bool showScaleToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -110,17 +116,18 @@ class ChartToolbar extends StatelessWidget {
                   '${drawingCount == 1 ? '' : 's'}',
               onTap: onClearDrawings,
             ),
-          _Chip(
-            label: settings.scale.label,
-            selected: settings.scale != PriceScale.linear,
-            semanticLabel: '${settings.scale.label} price scale',
-            onTap: () {
-              const List<PriceScale> order = PriceScale.values;
-              final int next =
-                  (order.indexOf(settings.scale) + 1) % order.length;
-              onChanged(settings.copyWith(scale: order[next]));
-            },
-          ),
+          if (showScaleToggle)
+            _Chip(
+              label: settings.scale.label,
+              selected: settings.scale != PriceScale.linear,
+              semanticLabel: '${settings.scale.label} price scale',
+              onTap: () {
+                const List<PriceScale> order = PriceScale.values;
+                final int next =
+                    (order.indexOf(settings.scale) + 1) % order.length;
+                onChanged(settings.copyWith(scale: order[next]));
+              },
+            ),
         ],
       ),
     );

@@ -525,12 +525,30 @@ class ChartBasePainter extends CustomPainter {
 
   // ---------------------------------------------------------------- axes
 
+  /// Gridline positions, always returned as prices.
+  ///
+  /// Which space the "nice" numbers are chosen in depends on the scale:
+  ///
+  ///   • percent — nice values in AXIS space, so the lines land on −10%, −20%
+  ///     and so on. Choosing them in price space would put them at arbitrary
+  ///     percentages.
+  ///   • linear and log — nice values in PRICE space. On a log axis they then
+  ///     land unevenly on screen, which is exactly what a log scale should
+  ///     look like; picking evenly spaced axis values there would produce
+  ///     gridlines at 4.61 and 4.83.
   List<double> _priceTicks() {
-    // On a log axis, evenly spaced *axis* ticks are ugly prices (4.61, 4.83).
-    // Nice numbers are generated in price space instead and land unevenly on
-    // screen, which is exactly what a log scale should look like.
-    final double lo = priceGeometry.axis.toPrice(priceGeometry.axisMin);
-    final double hi = priceGeometry.axis.toPrice(priceGeometry.axisMax);
+    final PriceAxis axis = priceGeometry.axis;
+
+    if (axis.scale == PriceScale.percent) {
+      return <double>[
+        for (final double v
+            in niceTicks(priceGeometry.axisMin, priceGeometry.axisMax))
+          axis.toPrice(v),
+      ];
+    }
+
+    final double lo = axis.toPrice(priceGeometry.axisMin);
+    final double hi = axis.toPrice(priceGeometry.axisMax);
     return niceTicks(math.min(lo, hi), math.max(lo, hi));
   }
 

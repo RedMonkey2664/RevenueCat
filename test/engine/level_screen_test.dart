@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:market_nerve/data/sample/dev_sample_level.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
 import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
-import 'package:market_nerve/features/simulator/level/level_screen.dart';
+
+import '../support/level_harness.dart' as harness;
 
 /// Mounts the real screen through the real widget tree.
 ///
@@ -17,15 +16,8 @@ void main() {
   Future<void> pumpLevelScreen(
     WidgetTester tester, {
     SimulationMode mode = SimulationMode.beginner,
-  }) async {
-    final SimulationLevel level = DevSampleLevel.build();
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: LevelScreen(level: level, mode: mode)),
-      ),
-    );
-    await tester.pump();
-  }
+  }) =>
+      harness.pumpLevelScreen(tester, DevSampleLevel.build(), mode: mode);
 
   testWidgets('opens without throwing and starts blind', (
     WidgetTester tester,

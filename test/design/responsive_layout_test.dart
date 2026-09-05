@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:market_nerve/data/sample/dev_sample_level.dart';
 import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
-import 'package:market_nerve/features/simulator/level/level_screen.dart';
 
-/// The level screen must survive real phone sizes with every indicator on.
+import '../support/level_harness.dart';
+
+/// The level screen must survive real phone sizes with every pane open.
 ///
 /// A 60pt horizontal overflow in the transport bar shipped unnoticed because
 /// the default test surface is 800x600 — wider than any phone — and Flutter
 /// only reports each identical overflow once. These sizes are the actual
 /// targets.
+///
+/// The indicators are switched on through stored preferences rather than by
+/// tapping through the picker sheet: the thing under test is the *layout* with
+/// two sub-panes stealing height from the chart, and driving a modal sheet on
+/// six surface sizes would test the sheet instead.
 void main() {
   const List<(String, Size)> sizes = <(String, Size)>[
     ('iPhone SE', Size(375, 667)),
@@ -18,37 +23,45 @@ void main() {
     ('Pixel 7', Size(412, 915)),
   ];
 
+  /// SMA over the price, plus RSI and MACD in panes of their own — the
+  /// tallest arrangement the chart can be asked for.
+  const String crowdedChart = '{"chart_type":"candles","interval":"1D",'
+      '"scale":"linear","indicators":['
+      '{"kind":"sma","period":20},'
+      '{"kind":"rsi","period":14},'
+      '{"kind":"macd","period":0}]}';
+
   for (final (String name, Size size) in sizes) {
     for (final SimulationMode mode in SimulationMode.values) {
-      testWidgets('$name / ${mode.name} lays out with both indicators on', (
+      testWidgets('$name / ${mode.name} lays out with every pane open', (
         WidgetTester tester,
       ) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.reset);
-
-        await tester.pumpWidget(
-          ProviderScope(
-            child: MaterialApp(
-              home: LevelScreen(level: DevSampleLevel.build(), mode: mode),
-            ),
-          ),
+        await pumpLevelScreen(
+          tester,
+          DevSampleLevel.build(),
+          mode: mode,
+          surface: size,
+          prefs: const <String, Object>{
+            'flutter.chart_settings_v1': crowdedChart,
+          },
         );
-        await tester.pump();
-        expect(tester.takeException(), isNull, reason: 'idle on $name');
 
-        // The console toolbar scrolls horizontally; on a narrow phone the
-        // RSI chip starts off-screen, and a tap that misses would make this
-        // test silently prove nothing.
-        await tester.ensureVisible(find.text('RSI 14'));
-        await tester.pump();
-        await tester.tap(find.text('RSI 14'));
-        await tester.pump();
-        expect(tester.takeException(), isNull, reason: 'RSI on, $name');
+        expect(tester.takeException(), isNull, reason: 'idle on $name');
 
         await tester.tap(find.text('START RUN'));
         await tester.pump(const Duration(milliseconds: 4600));
         expect(tester.takeException(), isNull, reason: 'playing on $name');
+
+        // Leave no timer running for the framework to complain about.
+        //
+        // Beginner mode may already have halted at a pause point by now, in
+        // which case the transport bar shows play and there is no timer left
+        // to stop — so the tap is conditional rather than assumed.
+        final Finder pause = find.byIcon(Icons.pause);
+        if (pause.evaluate().isNotEmpty) {
+          await tester.tap(pause);
+          await tester.pump();
+        }
       });
     }
   }

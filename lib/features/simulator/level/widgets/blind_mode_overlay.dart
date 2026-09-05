@@ -63,7 +63,14 @@ class BlindModeHeader extends StatelessWidget {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        _TickerPlate(name: revealedAssetName),
+                        // Flexible, not fixed: blind mode's plate is four
+                        // blocks wide, but after the reveal it holds a real
+                        // asset name — "Nasdaq Composite Index" overflowed
+                        // this row by 166pt on a phone. The day counter is
+                        // the shorter of the two, so it yields first.
+                        Flexible(
+                          child: _TickerPlate(name: revealedAssetName),
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         Flexible(
                           child: Text(
@@ -165,6 +172,8 @@ class _TickerPlate extends StatelessWidget {
       ),
       child: Text(
         blind ? '████' : name!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: AppText.mono(
           size: 11,
           weight: FontWeight.w700,

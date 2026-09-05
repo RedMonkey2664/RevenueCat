@@ -64,17 +64,30 @@ class RealChartLabels extends ChartLabels {
 
 /// Blind mode: a relative index and a day counter, nothing else.
 ///
-/// Prices are rebased so the first bar reads 100, which is the same
-/// transform the old fl_chart view used — kept so a mid-run screenshot from
-/// before this chart landed still reads the same way.
+/// Prices are rebased so the level's first bar reads 100 — the same transform
+/// the previous fl_chart view used, kept so the axis reads the same way it
+/// always has.
+///
+/// [baselinePrice] is the level's opening close, NOT the first visible bar:
+/// a baseline that moved as the player panned would make the same candle show
+/// two different index values.
+///
+/// Pair with [PriceScale.percent] so the gridlines land on round moves.
 class BlindChartLabels extends ChartLabels {
-  const BlindChartLabels();
+  const BlindChartLabels({required this.baselinePrice});
+
+  final double baselinePrice;
 
   @override
   bool get showsRealDates => false;
 
+  /// Receives a real price and rebases it, which is what keeps the absolute
+  /// number off the screen: no caller has to remember to hide it.
   @override
-  String price(double value) => value.toStringAsFixed(1);
+  String price(double value) {
+    if (baselinePrice <= 0) return value.toStringAsFixed(1);
+    return (value / baselinePrice * 100).toStringAsFixed(1);
+  }
 
   @override
   String time(DateTime date, int barIndex, BarInterval interval) =>

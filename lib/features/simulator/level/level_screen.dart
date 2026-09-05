@@ -3,17 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
 import '../../../app/widgets/simulated_badge.dart';
+import '../../../core/market/candle.dart';
+import '../../chart/model/chart_labels.dart';
+import '../../chart/model/chart_types.dart';
+import '../../chart/pro_chart.dart';
+import '../../chart/services/chart_preferences.dart';
+import '../../chart/widgets/chart_toolbar.dart';
+import '../../chart/widgets/ohlc_legend.dart';
 import '../debrief/debrief_screen.dart';
 import '../engine/level_brief.dart';
 import '../engine/level_model.dart';
 import '../engine/replay_controller.dart';
 import '../engine/simulation_mode.dart';
 import 'widgets/blind_mode_overlay.dart';
-import 'widgets/chart_view.dart';
-import 'widgets/console_chrome.dart';
 import 'widgets/decision_panel.dart';
 import 'widgets/pause_flash_overlay.dart';
-import 'widgets/rsi_panel.dart';
 import 'widgets/trade_panel.dart';
 
 /// The core screen: chart + blind-mode chrome + decision panel at pause points.
@@ -49,14 +53,48 @@ class _LevelScreenBody extends ConsumerStatefulWidget {
 }
 
 class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
-  bool _sma = true;
-  bool _rsi = false;
+  ChartSettings? _settings;
+
+  /// A level's bundled bars are daily, so only daily and coarser are offered.
+  /// The chart folds those locally; a finer timeframe would need data the
+  /// level does not carry, and DESIGN.md's replacement rule is that a control
+  /// the host cannot serve is absent rather than present-and-inert.
+  static const List<BarInterval> _intervals = <BarInterval>[
+    BarInterval.d1,
+    BarInterval.w1,
+    BarInterval.mo1,
+  ];
+
+  ChartSettings _settingsFor(bool blind) {
+    final ChartSettings base = _settings ??=
+        ref.read(chartPreferencesProvider).loadSettings(
+              defaultInterval: BarInterval.d1,
+            );
+
+    // Blind mode pins the scale to percent so the gridlines land on round
+    // moves. This is presentation only -- what actually keeps absolute prices
+    // off the screen is [BlindChartLabels], which rebases every value the
+    // chart is asked to render.
+    return blind ? base.copyWith(scale: PriceScale.percent) : base;
+  }
+
+  void _applySettings(ChartSettings next) {
+    setState(() => _settings = next);
+    ref.read(chartPreferencesProvider).saveSettings(next);
+  }
 
   @override
   Widget build(BuildContext context) {
     final ReplayState state = ref.watch(replayControllerProvider);
     final ReplayController controller =
         ref.read(replayControllerProvider.notifier);
+
+    final bool blind = !state.isRevealed;
+    final ChartSettings settings = _settingsFor(blind);
+    final List<Candle> visible = state.visibleCandles;
+    final ChartLabels labels = blind
+        ? BlindChartLabels(baselinePrice: state.level.candles.first.close)
+        : const RealChartLabels();
 
     return Scaffold(
       appBar: AppBar(
@@ -84,12 +122,6 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
             revealedAssetName:
                 state.isRevealed ? state.level.realAssetName : null,
           ),
-          ConsoleChrome(
-            smaEnabled: _sma,
-            rsiEnabled: _rsi,
-            onToggleSma: () => setState(() => _sma = !_sma),
-            onToggleRsi: () => setState(() => _rsi = !_rsi),
-          ),
           Expanded(
             child: Column(
               children: <Widget>[
@@ -99,15 +131,39 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
                           AppSpacing.sm,
-                          AppSpacing.lg,
-                          AppSpacing.md,
+                          AppSpacing.xl,
+                          AppSpacing.xs,
                           AppSpacing.sm,
                         ),
-                        child: ChartView(
-                          candles: state.visibleCandles,
-                          baselinePrice: state.level.candles.first.close,
-                          blindMode: !state.isRevealed,
-                          showSma: _sma,
+                        child: ProChart(
+                          bars: visible,
+                          baseInterval: BarInterval.d1,
+                          settings: settings,
+                          labels: labels,
+                          // Keeps the newest candle in view as the replay
+                          // advances, unless the player has panned away to
+                          // look at something.
+                          autoFollow: true,
+                          replayCursorIndex: visible.length - 1,
+                          percentBaseline: state.level.candles.first.close,
+                        ),
+                      ),
+                      Positioned(
+                        left: AppSpacing.md,
+                        top: AppSpacing.xs,
+                        right: AppSpacing.md,
+                        child: IgnorePointer(
+                          child: OhlcLegend(
+                            bar: visible.isEmpty ? null : visible.last,
+                            previous: visible.length > 1
+                                ? visible[visible.length - 2]
+                                : null,
+                            labels: labels,
+                            indicatorLegend: <String>[
+                              for (final IndicatorSpec i in settings.indicators)
+                                i.label,
+                            ],
+                          ),
                         ),
                       ),
                       PauseFlashOverlay(
@@ -122,22 +178,20 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
                     ],
                   ),
                 ),
-                // Inside the flexible region, not below it. As a fixed
-                // sibling of the chart it pushed the column past the bottom
-                // of shorter screens; here it takes space from the chart
-                // instead of overflowing.
-                if (_rsi)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: AppSpacing.sm,
-                      right: AppSpacing.md,
-                      bottom: AppSpacing.sm,
-                    ),
-                    child: RsiPanel(candles: state.visibleCandles),
-                  ),
               ],
             ),
           ),
+          // Hidden until the run starts. Before that the pre-run brief covers
+          // the chart, so the toolbar controls something the player cannot
+          // reach — and on a 375x667 phone its 76pt pushed the START RUN
+          // button below the fold of the brief's scroll view.
+          if (state.status != ReplayStatus.idle)
+            ChartToolbar(
+              settings: settings,
+              onChanged: _applySettings,
+              availableIntervals: _intervals,
+              showScaleToggle: !blind,
+            ),
           _TransportBar(state: state, controller: controller),
           // The panel takes real estate from the chart rather than floating
           // over it. Overlaying looked tidier but hid the bottom of the
@@ -196,104 +250,116 @@ class _StartOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: AppColors.background.withValues(alpha: 0.88),
-      // Centred when there is room, scrollable when there is not. With the
-      // RSI panel open on a short phone the chart area shrinks below this
-      // overlay's natural height, and a plain Center overflowed it.
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) =>
-            SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              // Clamped: with the RSI panel open on a short phone the
-              // available height can drop below the padding, and a negative
-              // minHeight is a hard layout error.
-              minHeight: (constraints.maxHeight - AppSpacing.md * 2)
-                  .clamp(0.0, double.infinity),
-            ),
-            child: Center(
+      // The brief scrolls; the button does not.
+      //
+      // Both used to live in one scroll view, which meant that whenever the
+      // content was taller than the chart area the CTA went under the fold —
+      // on an iPhone SE it was cut off by about 20pt, so the primary action
+      // of the screen was half-visible and untappable. Pinning it costs
+      // nothing on a tall phone and fixes the short one outright.
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-            Text(
-              'You are already invested.',
-              style: AppText.title(size: 22),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: cardDecoration(raised: true),
-                child: Column(
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        _BriefStat(
-                          value: brief.approxMonths.toString(),
-                          unit: brief.approxMonths == 1 ? 'MONTH' : 'MONTHS',
-                        ),
-                        Container(
-                          width: 1,
-                          height: 28,
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
+                  Text(
+                    'You are already invested.',
+                    style: AppText.title(size: 22),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: cardDecoration(raised: true),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              _BriefStat(
+                                value: brief.approxMonths.toString(),
+                                unit: brief.approxMonths == 1
+                                    ? 'MONTH'
+                                    : 'MONTHS',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 28,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                color: AppColors.border,
+                              ),
+                              _BriefStat(
+                                value: brief.moments.toString(),
+                                unit: brief.moments == 1 ? 'CALL' : 'CALLS',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 28,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                color: AppColors.border,
+                              ),
+                              _BriefStat(
+                                value: brief.severity.label,
+                                unit: 'SEVERITY',
+                                color: switch (brief.severity) {
+                                  BriefSeverity.historic ||
+                                  BriefSeverity.severe =>
+                                    AppColors.down,
+                                  BriefSeverity.significant =>
+                                    AppColors.simulatedBadge,
+                                  BriefSeverity.mild =>
+                                    AppColors.textSecondary,
+                                },
+                                small: true,
+                              ),
+                            ],
                           ),
-                          color: AppColors.border,
-                        ),
-                        _BriefStat(
-                          value: brief.moments.toString(),
-                          unit: brief.moments == 1 ? 'CALL' : 'CALLS',
-                        ),
-                        Container(
-                          width: 1,
-                          height: 28,
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            brief.body,
+                            textAlign: TextAlign.center,
+                            style: AppText.body(
+                              size: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                          color: AppColors.border,
-                        ),
-                        _BriefStat(
-                          value: brief.severity.label,
-                          unit: 'SEVERITY',
-                          color: switch (brief.severity) {
-                            BriefSeverity.historic ||
-                            BriefSeverity.severe =>
-                              AppColors.down,
-                            BriefSeverity.significant =>
-                              AppColors.simulatedBadge,
-                            BriefSeverity.mild => AppColors.textSecondary,
-                          },
-                          small: true,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      brief.body,
-                      textAlign: TextAlign.center,
-                      style: AppText.body(
-                        size: 13,
-                        color: AppColors.textSecondary,
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Text(
+                      'The asset and the dates stay hidden until the debrief. '
+                      '${mode.blurb}',
+                      textAlign: TextAlign.center,
+                      style: AppText.body(
+                        size: 12,
+                        color: AppColors.textFaint,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Text(
-                'The asset and the dates stay hidden until the debrief. '
-                '${mode.blurb}',
-                textAlign: TextAlign.center,
-                style: AppText.body(size: 12, color: AppColors.textFaint),
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.md,
+              bottom: AppSpacing.lg,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton(
+            child: FilledButton(
               onPressed: onStart,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accent,
@@ -313,12 +379,9 @@ class _StartOverlay extends StatelessWidget {
                   letterSpacing: 1.4,
                 ),
               ),
-                  ),
-                ],
-              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -326,8 +389,9 @@ class _StartOverlay extends StatelessWidget {
 
 /// Play/pause plus the three real replay speeds.
 ///
-/// The locked extra speeds (0.5x, 8x) and the rest of the console chrome are
-/// Phase 7 work — deliberately absent here rather than half-built.
+/// Speed is the one chart control that belongs to the *replay* rather than to
+/// the chart, so it stays here rather than moving into [ChartToolbar] with
+/// the rest of the console.
 class _TransportBar extends StatelessWidget {
   const _TransportBar({required this.state, required this.controller});
 

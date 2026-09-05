@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:market_nerve/features/simulator/campaign/level_repository.dart';
 import 'package:market_nerve/features/simulator/engine/level_brief.dart';
 import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
-import 'package:market_nerve/features/simulator/level/level_screen.dart';
+
+import '../support/level_harness.dart';
 
 /// The pre-play brief must inform without identifying.
 ///
@@ -28,18 +27,10 @@ void main() {
       level = await repo.loadLevel(entry);
     });
 
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          home: LevelScreen(level: level, mode: SimulationMode.beginner),
-        ),
-      ),
+    await pumpLevelScreen(
+      tester,
+      level,
     );
-    await tester.pump();
     expect(tester.takeException(), isNull);
 
     String screenText() => tester
