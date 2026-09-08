@@ -96,12 +96,27 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
         ? BlindChartLabels(baselinePrice: state.level.candles.first.close)
         : const RealChartLabels();
 
+    // The run's state drives one colour through the whole screen: the app bar
+    // label, the header rail, the masked plate, the chart frame and the chart
+    // line. Artboards 1a-1d differ in almost nothing else.
+    //
+    //   halted   -> red    (alarm; the one screen that gets it)
+    //   advanced -> amber  (caution; free trading, no safety net)
+    //   playing  -> amber  (caution; a run in progress)
+    //   idle     -> mint   (nominal)
+    final _RunState runState = _RunState.of(state);
+    final Color stateColor = runState.color;
+
     return Scaffold(
+      // The alarm warms the whole ground, not just the panel. Two points of
+      // red in the background is a shift nobody reads consciously and
+      // everybody feels the moment playback halts.
+      backgroundColor: runState.isHalted
+          ? AppColors.alarmBackground
+          : AppColors.background,
       appBar: AppBar(
-        title: Text(
-          '${state.mode.label.toUpperCase()} RUN',
-          style: AppText.label(),
-        ),
+        title: Text(runState.label, style: AppText.railLabel(color: stateColor)),
+        shape: Border(bottom: BorderSide(color: stateColor.withValues(alpha: 0.24))),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
@@ -109,6 +124,10 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
             Navigator.of(context).maybePop();
           },
         ),
+        actions: <Widget>[
+          _StatusPip(runState: runState),
+          const SizedBox(width: AppSpacing.md),
+        ],
       ),
       body: Column(
         children: <Widget>[
@@ -121,6 +140,10 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
             pnlPercent: state.pnlPercent,
             revealedAssetName:
                 state.isRevealed ? state.level.realAssetName : null,
+            stateColor: stateColor,
+            // Advanced mode swaps the P&L chip for the exposure readout and
+            // gains the position/cash split bar (artboard 1d).
+            exposure: state.mode.isAdvanced ? state.exposure : null,
           ),
           Expanded(
             child: Column(
@@ -128,14 +151,33 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
                 Expanded(
                   child: Stack(
                     children: <Widget>[
+                      // The chart sits in a ruled frame, as it does in every
+                      // artboard. Kept flexible rather than the canvas's fixed
+                      // 236/250pt: on 390x844 the result is the same, and on a
+                      // 667pt phone a hard height would overflow. That also
+                      // matches the canvas's own stated rule for 1d - the
+                      // chart is the region that yields.
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.sm,
-                          AppSpacing.xl,
+                          AppSpacing.md,
                           AppSpacing.xs,
-                          AppSpacing.sm,
+                          AppSpacing.md,
+                          AppSpacing.xs,
                         ),
-                        child: ProChart(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: stateColor.withValues(alpha: 0.22),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.xs,
+                              AppSpacing.lg + 4,
+                              AppSpacing.xs,
+                              AppSpacing.xs,
+                            ),
+                            child: ProChart(
                           bars: visible,
                           baseInterval: BarInterval.d1,
                           settings: settings,
@@ -146,11 +188,13 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
                           autoFollow: true,
                           replayCursorIndex: visible.length - 1,
                           percentBaseline: state.level.candles.first.close,
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
-                        left: AppSpacing.md,
-                        top: AppSpacing.xs,
+                        left: AppSpacing.md + AppSpacing.sm,
+                        top: AppSpacing.sm + 2,
                         right: AppSpacing.md,
                         child: IgnorePointer(
                           child: OhlcLegend(
@@ -200,7 +244,6 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
           // so the chart above it stays legible.
           if (state.isAwaitingDecision)
             DecisionPanel(
-              flashTreatment: state.activePausePoint!.flashTreatment,
               portfolioValue: state.portfolioValue,
               pnlPercent: state.pnlPercent,
               onDecision: controller.submitDecision,
@@ -597,6 +640,119 @@ class _BriefStat extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(unit, style: AppText.label(size: 8.5)),
+      ],
+    );
+  }
+}
+
+/// The run's current state, and the one colour and label that follow from it.
+///
+/// Artboards 1a-1d are the same six regions with a different state colour and
+/// a different bottom panel; centralising the mapping here is what keeps the
+/// app bar, the header rail, the chart frame and the ground from disagreeing.
+enum _RunState {
+  idle,
+  playing,
+  halted,
+  advanced,
+  finished;
+
+  static _RunState of(ReplayState state) {
+    if (state.isAwaitingDecision) return _RunState.halted;
+    if (state.isFinished) return _RunState.finished;
+    if (state.mode.isAdvanced) return _RunState.advanced;
+    if (state.status == ReplayStatus.idle) return _RunState.idle;
+    return _RunState.playing;
+  }
+
+  bool get isHalted => this == _RunState.halted;
+
+  Color get color => switch (this) {
+        _RunState.halted => AppColors.down,
+        _RunState.playing || _RunState.advanced => AppColors.caution,
+        _RunState.idle || _RunState.finished => AppColors.accent,
+      };
+
+  /// App-bar label. The halted state names the call number, because "which of
+  /// nine is this" is the thing a player wants at that moment.
+  String get label => switch (this) {
+        _RunState.halted => 'HALTED',
+        _RunState.advanced => 'ADVANCED RUN',
+        _RunState.finished => 'RUN COMPLETE',
+        _RunState.idle || _RunState.playing => 'BEGINNER RUN',
+      };
+
+  /// The right-hand status word. Short by necessity — it shares the app bar
+  /// with a title that is already widely tracked.
+  String get pip => switch (this) {
+        _RunState.halted => 'STOP',
+        _RunState.advanced => 'NO HALTS',
+        _RunState.playing => 'LIVE',
+        _RunState.finished => 'ENDED',
+        _RunState.idle => 'ARMED',
+      };
+
+  /// Whether the pip's dot should pulse. Static once the run is over.
+  bool get pulses => this != _RunState.finished;
+}
+
+/// The app bar's right-hand status indicator: a dot and a word.
+///
+/// The dot breathes while the run is live, which is the canvas's `mnPulse` /
+/// `mnBlink` — ambient motion slow enough that the eye never catches it
+/// moving, per AppMotion's ambient durations.
+class _StatusPip extends StatefulWidget {
+  const _StatusPip({required this.runState});
+
+  final _RunState runState;
+
+  @override
+  State<_StatusPip> createState() => _StatusPipState();
+}
+
+class _StatusPipState extends State<_StatusPip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: AppMotion.ambient,
+  );
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = widget.runState.color;
+    // An ambient loop never settles, so it has to be opt-out: the OS
+    // reduce-motion setting silences it, and so does a finished run.
+    final bool animate = widget.runState.pulses &&
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+    if (animate) {
+      if (!_pulse.isAnimating) _pulse.repeat(reverse: true);
+    } else if (_pulse.isAnimating) {
+      _pulse.stop();
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        FadeTransition(
+          opacity: animate
+              ? Tween<double>(begin: 0.35, end: 1).animate(
+                  CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+                )
+              : const AlwaysStoppedAnimation<double>(0.6),
+          child: Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs + 2),
+        Text(widget.runState.pip, style: AppText.label(size: 9, color: color)),
       ],
     );
   }

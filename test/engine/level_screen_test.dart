@@ -27,9 +27,9 @@ void main() {
     expect(tester.takeException(), isNull);
 
     // Blind mode: the masked ticker is on screen, the real asset name is not.
-    expect(find.text('████'), findsOneWidget);
+    expect(find.text('████ ██'), findsOneWidget);
     expect(find.text(DevSampleLevel.assetLabel), findsNothing);
-    expect(find.text('DAY 1/130'), findsOneWidget);
+    expect(find.text('DAY 1 / 130'), findsOneWidget);
 
     // The non-negotiable framing is present during play.
     expect(
@@ -54,7 +54,7 @@ void main() {
 
     // Let the replay timer advance past a few candles.
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('DAY 1/130'), findsNothing);
+    expect(find.text('DAY 1 / 130'), findsNothing);
 
     // Leave no pending timer behind for the test framework to complain about.
     await tester.tap(find.byIcon(Icons.pause));

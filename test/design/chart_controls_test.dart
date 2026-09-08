@@ -7,6 +7,14 @@ import 'package:market_nerve/features/chart/widgets/chart_toolbar.dart';
 
 import '../support/level_harness.dart';
 
+// The level screen carries an ambient status pulse, so `pumpAndSettle` would
+// wait for an animation that never finishes. This waits for a route or sheet
+// transition instead: one frame to start it, then long enough to finish.
+Future<void> settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+}
+
 /// Replaces the old `dummy_chrome_test.dart`.
 ///
 /// DESIGN.md used to require that the chart's extra timeframes, chart types,
@@ -82,7 +90,7 @@ void main() {
     );
 
     await tester.tap(find.byIcon(Icons.candlestick_chart));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     expect(find.text('CHART TYPE'), findsOneWidget);
     for (final ChartType t in ChartType.values) {
@@ -90,7 +98,7 @@ void main() {
     }
 
     await tester.tap(find.text('Heikin-Ashi'));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     expect(
       tester.widget<ProChart>(find.byType(ProChart)).settings.chartType,
@@ -111,7 +119,7 @@ void main() {
     );
 
     await tester.tap(find.byIcon(Icons.functions));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     expect(find.text('INDICATORS'), findsOneWidget);
     // Every indicator DESIGN.md used to list as dummy is now offered.
@@ -120,9 +128,9 @@ void main() {
     }
 
     await tester.tap(find.text('Relative Strength Index'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     await tester.tap(find.text('Done'));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     final List<IndicatorSpec> applied =
         tester.widget<ProChart>(find.byType(ProChart)).settings.indicators;
