@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
-import '../../../app/widgets/discipline_badge.dart';
 import '../../../app/widgets/pressable.dart';
 import '../../../core/services/progress_service.dart';
 import '../../../data/sample/dev_sample_level.dart';
@@ -13,7 +12,7 @@ import '../endless/endless_home.dart';
 import '../engine/simulation_mode.dart';
 import '../level/level_screen.dart';
 import 'level_repository.dart';
-import 'widgets/level_tile.dart';
+import 'widgets/campaign_path.dart';
 
 /// Simulator tab: mode choice, the campaign map, and the dev sample run.
 ///
@@ -44,58 +43,78 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.background,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            titleSpacing: AppSpacing.md,
-            title: const _Wordmark(),
-            // In `actions`, not stuffed into `title` — the title slot has no
-            // slack for a 44pt tap target and the row overflowed by 14pt.
-            actions: <Widget>[
-              if (progress.totalDisciplinePoints > 0)
-                Center(
-                  child: DisciplinePointsChip(
-                    points: progress.totalDisciplinePoints,
-                  ),
-                ),
-              IconButton(
-                tooltip: 'Profile',
-                icon: const Icon(Icons.person_outline),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const ProfileScreen(),
-                  ),
-                ),
-              ),
-            ],
-          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
-              AppSpacing.sm,
+              AppSpacing.md,
               AppSpacing.md,
               0,
             ),
             sliver: SliverList.list(
               children: <Widget>[
-                Text('Survive the crash.', style: AppText.title(size: 30)),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'A real drawdown, with the asset and the dates hidden. '
-                  'One question: what do you do now?',
-                  style: AppText.body(
-                    size: 14,
-                    color: AppColors.textSecondary,
+                // The canvas leads with the wordmark and two round icon
+                // buttons rather than an app bar, so the stats strip can sit
+                // directly under it. The headline sentence is gone: 1f uses
+                // "MARKET NERVE / CAMPAIGN" and lets the strip carry the
+                // context the sentence used to.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'MARKET NERVE',
+                            style: AppText.railLabel(
+                              size: 26,
+                              weight: FontWeight.w700,
+                              letterSpacing: 26 * 0.14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text('CAMPAIGN', style: AppText.label(size: 10)),
+                        ],
+                      ),
+                    ),
+                    _RoundButton(
+                      icon: Icons.tune,
+                      tooltip: 'Play mode',
+                      onTap: () => setState(
+                        () => _mode = _mode.isBeginner
+                            ? SimulationMode.advanced
+                            : SimulationMode.beginner,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _RoundButton(
+                      icon: Icons.person_outline,
+                      tooltip: 'Profile',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ProfileScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _StatsStrip(
+                  progress: progress,
+                  totalLevels: manifest.maybeWhen(
+                    data: (List<LevelManifestEntry> all) => all.length,
+                    orElse: () => 0,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
+                // The mode the strip's buttons toggle is still selectable
+                // explicitly — the round button alone is too quiet for a
+                // choice that changes how the whole run behaves.
                 _ModeSelector(
                   selected: _mode,
                   onChanged: (SimulationMode m) => setState(() => _mode = m),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.md),
                 _DevRunCard(
                   // rootNavigator: a run is a full-screen mode, not a page
                   // inside the Simulator tab — the bottom nav both distracts
@@ -133,16 +152,18 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                _SectionHeader(
-                  label: 'CAMPAIGN',
-                  trailing: manifest.maybeWhen(
-                    data: (List<LevelManifestEntry> all) =>
-                        '${progress.clearedCount}/${all.length} CLEARED',
-                    orElse: () => null,
+                const SizedBox(height: AppSpacing.lg),
+                Container(height: 1, color: AppColors.border),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'SELECT MISSION',
+                  style: AppText.railLabel(
+                    size: 15,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 15 * 0.24,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm + 2),
                 _MarketFilter(
                   selected: _market,
                   counts: manifest.maybeWhen(
@@ -180,35 +201,28 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   : all
                       .where((LevelManifestEntry e) => e.assetClass == _market)
                       .toList();
-              return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              sliver: SliverGrid.builder(
-                itemCount: entries.length,
-                // Max-extent rather than a fixed column count: a fixed 3
-                // columns turns into 630pt tiles on a wide window. This caps
-                // tile size and adds columns instead.
-                gridDelegate:
-                    const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 132,
-                  crossAxisSpacing: AppSpacing.sm,
-                  mainAxisSpacing: AppSpacing.sm,
-                  // Near-square. Taller tiles left a dead void in the middle
-                  // of every unsourced level.
-                  childAspectRatio: 0.94,
+              // The S-curve path replaces the tile grid (artboard 1f). It
+              // sizes itself to the level count, so it goes in a plain
+              // SliverToBoxAdapter rather than a sliver grid.
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
+                  child: CampaignPath(
+                    entries: entries,
+                    progress: progress,
+                    onTap: (LevelManifestEntry entry) {
+                      // Only a level with real, sourced data is launchable.
+                      // Everything else still responds and explains itself.
+                      if (entry.dataStatus.isPlayable) {
+                        _launch(context, entry);
+                      } else {
+                        _explainUnsourced(context, entry);
+                      }
+                    },
+                  ),
                 ),
-                itemBuilder: (BuildContext context, int i) {
-                  final LevelManifestEntry entry = entries[i];
-                  return LevelTile(
-                    entry: entry,
-                    progress: progress.forLevel(entry.id),
-                    // Only a level with real, sourced data is launchable.
-                    // Everything else stays visible and explains itself.
-                    onTap: entry.dataStatus.isPlayable
-                        ? () => _launch(context, entry)
-                        : null,
-                  );
-                },
-              ),
               );
             },
           ),
@@ -267,54 +281,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
   }
 }
 
-class _Wordmark extends StatelessWidget {
-  const _Wordmark();
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Container(
-          width: 3,
-          height: 16,
-          decoration: const BoxDecoration(
-            color: AppColors.accent,
-            borderRadius: BorderRadius.all(Radius.circular(2)),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          'Market Nerve',
-          style: AppText.body(size: 15, weight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-}
-
-/// A small mono label with a hairline running to the trailing text. Gives the
-/// page structure without spending a heading's worth of vertical space.
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label, this.trailing});
-
-  final String label;
-  final String? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Text(label, style: AppText.label(size: 10)),
-        const SizedBox(width: AppSpacing.sm),
-        const Expanded(child: Divider(height: 1, color: AppColors.border)),
-        if (trailing != null) ...<Widget>[
-          const SizedBox(width: AppSpacing.sm),
-          Text(trailing!, style: AppText.label(size: 10)),
-        ],
-      ],
-    );
-  }
-}
 
 class _Notice extends StatelessWidget {
   const _Notice({
@@ -720,4 +687,211 @@ class _ModeCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A 34pt round icon button, as the canvas's header uses.
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          // The circle is 34pt to match the canvas, but the hit box is the
+          // full 44 — kMinTouchTarget is not negotiable.
+          child: SizedBox(
+            width: kMinTouchTarget,
+            height: kMinTouchTarget,
+            child: Center(
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Icon(icon, size: 15, color: AppColors.textSecondary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The four-cell stats strip under the wordmark.
+///
+/// STREAK has no data behind it: the Daily Pivot is unbuilt, so there is no
+/// streak to report. It shows an em dash rather than a zero, because a zero
+/// would read as "you broke your streak" and CLAUDE.md forbids presenting a
+/// number the app cannot stand behind.
+class _StatsStrip extends StatelessWidget {
+  const _StatsStrip({required this.progress, required this.totalLevels});
+
+  final ProgressState progress;
+  final int totalLevels;
+
+  /// Mean best score across levels that have actually been graded.
+  String get _avgScore {
+    final Iterable<int> scores = progress.levels.values
+        .map((LevelProgress p) => p.bestScore)
+        .whereType<int>();
+    if (scores.isEmpty) return '—';
+    return (scores.reduce((int a, int b) => a + b) / scores.length)
+        .round()
+        .toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(border: Border.all(color: AppColors.border)),
+      child: Row(
+        children: <Widget>[
+          _StatCell(
+            glyph: '◆',
+            value: '—',
+            label: 'STREAK',
+            color: AppColors.caution,
+            // The one cell whose underline marks it as not yet real.
+            pending: true,
+          ),
+          _StatCell(
+            glyph: '★',
+            value: _avgScore,
+            label: 'AVG SCORE',
+          ),
+          _StatCell(
+            glyph: '✓',
+            value: '${progress.clearedCount}/$totalLevels',
+            label: 'CLEARED',
+          ),
+          _StatCell(
+            glyph: '⚡',
+            value: '${progress.pivotBonusPoints}',
+            label: 'PIVOT DP',
+            color: AppColors.accent,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  const _StatCell({
+    required this.glyph,
+    required this.value,
+    required this.label,
+    this.color,
+    this.pending = false,
+  });
+
+  final String glyph;
+  final String value;
+  final String label;
+  final Color? color;
+  final bool pending;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: label == 'STREAK'
+                  ? Colors.transparent
+                  : AppColors.border.withValues(alpha: 0.6),
+            ),
+            bottom: pending
+                ? const BorderSide(color: AppColors.caution, width: 2)
+                : BorderSide.none,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+          child: Column(
+            children: <Widget>[
+              Text(
+                '$glyph $value',
+                style: AppText.display(
+                  size: 22,
+                  weight: FontWeight.w700,
+                  color: color ?? AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(label, style: AppText.label(size: 8)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Explains why a node cannot be played.
+///
+/// This lived on the old level tile, which the path map replaced. The copy is
+/// unchanged: a level that cannot ship says so plainly rather than being
+/// quietly absent, and it never blames the player.
+void _explainUnsourced(BuildContext context, LevelManifestEntry entry) {
+  const String paragraphBreak = '\n\n';
+  const String licenceNote =
+      'Licensing is cleared per market, so this level does not inherit '
+      'clearance from the others. It ships with real prices or it does '
+      'not ship.';
+
+  final String message = switch (entry.dataStatus) {
+    LevelDataStatus.needsDecision => entry.openQuestion ??
+        'This level needs a product decision before it can be built.',
+    LevelDataStatus.pendingSource => <String>[
+        'Waiting on ${entry.assetClass.label} market data that can be '
+            'legally bundled with the app.',
+        licenceNote,
+        if (entry.openQuestion != null) entry.openQuestion!,
+      ].join(paragraphBreak),
+    LevelDataStatus.sourced => entry.licence.isCleared
+        ? 'This level is not unlocked yet.'
+        : 'This level is built and playable, but its data source is not '
+            'cleared for release. It runs in development and demo builds; '
+            'publishing it needs a licensed source first.',
+  };
+
+  showDialog<void>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      backgroundColor: AppColors.surfaceRaised,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.card),
+      title: Text(entry.maskedTitle, style: AppText.title(size: 17)),
+      content: Text(
+        message,
+        style: AppText.body(size: 13, color: AppColors.textSecondary),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 }
