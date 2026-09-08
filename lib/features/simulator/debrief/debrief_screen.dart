@@ -167,7 +167,7 @@ class _ScoreAndPnl extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 '$sign${formatRupees(pnl.abs())}',
-                style: AppText.mono(
+                style: AppText.display(
                   size: 22,
                   weight: FontWeight.w700,
                   color: pnlColor,

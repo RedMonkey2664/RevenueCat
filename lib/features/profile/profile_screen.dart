@@ -55,7 +55,7 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   progress.totalDisciplinePoints.toString(),
-                  style: AppText.mono(
+                  style: AppText.display(
                     size: 52,
                     weight: FontWeight.w700,
                     color: AppColors.accent,
@@ -168,7 +168,7 @@ class _Stat extends StatelessWidget {
         children: <Widget>[
           Text(label, style: AppText.label()),
           const SizedBox(height: AppSpacing.xs),
-          Text(value, style: AppText.mono(size: 28, weight: FontWeight.w700)),
+          Text(value, style: AppText.display(size: 28, weight: FontWeight.w700)),
           if (note != null)
             Text(
               note!,
@@ -217,7 +217,7 @@ class _LevelRow extends StatelessWidget {
           ),
           Text(
             progress.bestScore?.toString() ?? '—',
-            style: AppText.mono(
+            style: AppText.display(
               size: 22,
               weight: FontWeight.w700,
               color: color,

@@ -370,15 +370,10 @@ class _DevRunCard extends StatelessWidget {
       minTarget: 0,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[
-              AppColors.down.withValues(alpha: 0.10),
-              AppColors.surface,
-            ],
-          ),
-          border: Border.all(color: AppColors.down.withValues(alpha: 0.35)),
-          borderRadius: AppRadius.card,
+        decoration: statePanelDecoration(
+          AppColors.down,
+          fillOpacity: 0.07,
+          borderOpacity: 0.35,
         ),
         child: Row(
           children: <Widget>[
@@ -679,15 +674,10 @@ class _ModeCard extends StatelessWidget {
       minTarget: 0,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[
-              AppColors.accent.withValues(alpha: 0.09),
-              AppColors.surface,
-            ],
-          ),
-          border: Border.all(color: AppColors.accent.withValues(alpha: 0.35)),
-          borderRadius: AppRadius.card,
+        decoration: statePanelDecoration(
+          AppColors.accent,
+          fillOpacity: 0.06,
+          borderOpacity: 0.35,
         ),
         child: Row(
           children: <Widget>[

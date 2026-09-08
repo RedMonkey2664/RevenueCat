@@ -88,10 +88,9 @@ class BlindModeHeader extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         formatRupees(portfolioValue),
-                        style: AppText.mono(
+                        style: AppText.display(
                           size: 30,
                           weight: FontWeight.w700,
-                          letterSpacing: -0.8,
                         ),
                       ),
                     ),

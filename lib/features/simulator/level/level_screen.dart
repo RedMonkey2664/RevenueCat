@@ -249,7 +249,10 @@ class _StartOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.background.withValues(alpha: 0.88),
+      // 0.97, the opacity the HUD canvas specifies for an overlay panel. At
+      // 0.88 the chart's axis labels and last-price tag read through the
+      // brief, which made the text look like it was floating on the candles.
+      color: AppColors.background.withValues(alpha: 0.97),
       // The brief scrolls; the button does not.
       //
       // Both used to live in one scroll view, which meant that whenever the

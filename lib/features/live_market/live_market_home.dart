@@ -280,7 +280,7 @@ class _EmptyWatchlist extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Nothing here yet',
-              style: AppText.mono(size: 18, weight: FontWeight.w700),
+              style: AppText.title(size: 18),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(

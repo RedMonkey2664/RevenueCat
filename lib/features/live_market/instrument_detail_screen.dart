@@ -334,7 +334,7 @@ class _QuoteHeader extends StatelessWidget {
                     ? '—'
                     : '${instrument.currencySymbol}'
                         '${formatPrice(q.price)}',
-                style: AppText.mono(size: 24, weight: FontWeight.w700),
+                style: AppText.display(size: 24, weight: FontWeight.w700),
               ),
               const SizedBox(height: 2),
               if (q != null)

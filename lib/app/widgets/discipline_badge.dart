@@ -76,7 +76,7 @@ class DisciplineScoreDial extends StatelessWidget {
             children: <Widget>[
               Text(
                 score?.toString() ?? '—',
-                style: AppText.mono(
+                style: AppText.display(
                   size: 52,
                   weight: FontWeight.w700,
                   color: color,

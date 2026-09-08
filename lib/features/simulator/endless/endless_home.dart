@@ -143,15 +143,10 @@ class _MarketCard extends StatelessWidget {
       minTarget: 0,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[
-              AppColors.accent.withValues(alpha: 0.10),
-              AppColors.surface,
-            ],
-          ),
-          border: Border.all(color: AppColors.accent.withValues(alpha: 0.45)),
-          borderRadius: AppRadius.card,
+        decoration: statePanelDecoration(
+          AppColors.accent,
+          fillOpacity: 0.07,
+          borderOpacity: 0.45,
         ),
         child: Row(
           children: <Widget>[

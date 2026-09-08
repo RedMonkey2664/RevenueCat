@@ -59,13 +59,12 @@ class LevelTile extends StatelessWidget {
       minTarget: 0,
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: playable || _isCleared
-                ? <Color>[AppColors.surfaceRaised, AppColors.surface]
-                : <Color>[AppColors.surface, AppColors.background],
-          ),
+          // Flat, not a gradient: the HUD builds depth from the wash and the
+          // rail. A cleared or playable tile sits one wash step above the
+          // ground; an unsourced one sits on it.
+          color: playable || _isCleared
+              ? AppColors.surface
+              : AppColors.background,
           border: Border.all(color: edge),
           borderRadius: AppRadius.card,
         ),
@@ -80,12 +79,11 @@ class LevelTile extends StatelessWidget {
                 // Market-scoped, matching the masked title above it — the
                 // global order would put "11" behind a tile reading IND 01.
                 entry.indexInMarket.toString().padLeft(2, '0'),
-                style: AppText.mono(
+                style: AppText.display(
                   size: 60,
-                  weight: FontWeight.w700,
+                  weight: FontWeight.w800,
                   color: (_isCleared ? AppColors.up : AppColors.textPrimary)
                       .withValues(alpha: playable || _isCleared ? 0.10 : 0.05),
-                  letterSpacing: -3,
                 ),
               ),
             ),

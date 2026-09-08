@@ -35,7 +35,7 @@ class PhasePlaceholder extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               'Not built yet',
-              style: AppText.mono(size: 20, weight: FontWeight.w700),
+              style: AppText.title(size: 20),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
