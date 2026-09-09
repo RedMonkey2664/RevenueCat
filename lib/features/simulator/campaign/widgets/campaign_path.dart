@@ -39,19 +39,34 @@ class CampaignPath extends StatelessWidget {
   final ProgressState progress;
   final ValueChanged<LevelManifestEntry> onTap;
 
-  /// Vertical distance between node centres, from the canvas's bezier: its
-  /// control points sit at y = 55, 185, 315, 445 …
-  static const double _spacing = 130;
+  /// Height of one node's slot: the largest circle, plus the three label rows
+  /// under it.
+  ///
+  /// The canvas's bezier puts its control points 130pt apart, and taking that
+  /// as the node pitch was wrong — the canvas lays its nodes out in a normal
+  /// flex column and draws the path *behind* them at approximate coordinates,
+  /// so 130 was never a spacing anyone had to honour. Using it literally made
+  /// every label collide with the circle below it.
+  static const double _labelBlock = 58;
+  static const double _slotGap = 20;
+  static const double _spacing =
+      _PathNode.maxDiameter + _labelBlock + _slotGap;
+
   static const double _firstCentre = 62;
 
   /// How far a node may swing either side of centre. Scaled from the width so
   /// the curve reads the same on a 375 and a 430 screen.
-  static double _amplitude(double width) => (width * 0.19).clamp(40.0, 78.0);
+  static double _amplitude(double width) => (width * 0.2).clamp(42.0, 80.0);
 
-  /// The serpentine. A sine rather than a strict left-right alternation, which
-  /// is what stops the path looking like a zig-zag.
+  /// The serpentine.
+  ///
+  /// A sine rather than a strict left-right alternation, so the path curves
+  /// instead of zig-zagging — but the period matters: at 0.85 rad per node the
+  /// wave was slower than the run of nodes on screen and read as a one-way
+  /// drift rather than an S. 1.15 turns over about every five nodes, and the
+  /// phase offset keeps the first node off dead-centre.
   static double _centreX(int i, double width) =>
-      width / 2 + _amplitude(width) * math.sin(i * 0.85);
+      width / 2 + _amplitude(width) * math.sin(i * 1.15 + 0.6);
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +107,16 @@ class CampaignPath extends StatelessWidget {
             clipBehavior: Clip.none,
             children: <Widget>[
               Positioned.fill(
-                child: CustomPaint(painter: _PathPainter(centres: centres)),
+                child: CustomPaint(
+                  painter: _PathPainter(
+                    centres: centres,
+                    // A segment leaves below the label block it would
+                    // otherwise be drawn straight through, and arrives at the
+                    // top of the next circle.
+                    exitOffset: _PathNode.maxDiameter / 2 + _labelBlock - 6,
+                    entryOffset: _PathNode.maxDiameter / 2 - 4,
+                  ),
+                ),
               ),
               for (int i = 0; i < entries.length; i++)
                 _positioned(
@@ -124,7 +148,7 @@ class CampaignPath extends StatelessWidget {
   /// Nodes are positioned by their *centre*, with the label column allowed to
   /// overflow below — hence `Clip.none` on the Stack.
   Widget _positioned({required Offset centre, required Widget child}) {
-    const double slot = 150;
+    const double slot = 168;
     return Positioned(
       left: centre.dx - slot / 2,
       top: centre.dy - _PathNode.maxDiameter / 2,
@@ -136,23 +160,42 @@ class CampaignPath extends StatelessWidget {
 
 /// The dashed connector.
 class _PathPainter extends CustomPainter {
-  const _PathPainter({required this.centres});
+  const _PathPainter({
+    required this.centres,
+    required this.exitOffset,
+    required this.entryOffset,
+  });
 
   final List<Offset> centres;
+
+  /// How far below a node's centre a segment starts — clear of that node's
+  /// own label block.
+  final double exitOffset;
+
+  /// How far above the next node's centre a segment stops — at the rim of
+  /// its circle rather than under it.
+  final double entryOffset;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (centres.length < 2) return;
 
-    final Path path = Path()..moveTo(centres.first.dx, centres.first.dy);
+    // One sub-path per gap rather than a single continuous curve: a
+    // centre-to-centre path is drawn straight through the labels hanging
+    // below each node, which looked like a strike-through.
+    final Path path = Path();
     for (int i = 1; i < centres.length; i++) {
       final Offset a = centres[i - 1];
       final Offset b = centres[i];
+      final Offset from = Offset(a.dx, a.dy + exitOffset);
+      final Offset to = Offset(b.dx, b.dy - entryOffset);
       // The canvas's own connector shape: both control points sit at the
       // midpoint height, one under the start and one over the end, which
       // produces the S rather than a lazy diagonal.
-      final double midY = (a.dy + b.dy) / 2;
-      path.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
+      final double midY = (from.dy + to.dy) / 2;
+      path
+        ..moveTo(from.dx, from.dy)
+        ..cubicTo(from.dx, midY, to.dx, midY, to.dx, to.dy);
     }
 
     canvas.drawPath(
@@ -179,7 +222,10 @@ class _PathPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_PathPainter old) => old.centres != centres;
+  bool shouldRepaint(_PathPainter old) =>
+      old.centres != centres ||
+      old.exitOffset != exitOffset ||
+      old.entryOffset != entryOffset;
 }
 
 enum _NodeState { cleared, current, available, locked, noData }
@@ -355,19 +401,21 @@ class _PathNodeState extends State<_PathNode>
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            // Blind mode: the real event is named only once cleared.
-            cleared ? widget.entry.revealTitle : _maskedName,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppText.title(
-              size: 14,
-              color: cleared
-                  ? AppColors.textPrimary
-                  : AppColors.textSecondary.withValues(alpha: 0.45),
-            ),
-          ),
+          // Blind mode: the real event is named only once cleared.
+          if (cleared)
+            Text(
+              widget.entry.revealTitle,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.title(size: 14),
+            )
+          else
+            // A bare row of block glyphs at title size read as a broken
+            // progress bar rather than as a redaction. Boxing it — the same
+            // plate the level screen's masked ticker uses — makes it
+            // unmistakably "name withheld".
+            _MaskedName(state: widget.state),
           const SizedBox(height: 3),
           _subLabel(skin),
         ],
@@ -375,11 +423,6 @@ class _PathNodeState extends State<_PathNode>
     );
   }
 
-  String get _maskedName => widget.state == _NodeState.current
-      // The one node the player is about to open says so, rather than showing
-      // the same block mask as a level they cannot reach yet.
-      ? 'CLASSIFIED'
-      : '████ ██';
 
   Widget _faceContent(_NodeSkin skin) {
     switch (widget.state) {
@@ -525,6 +568,42 @@ class _NodeFace extends StatelessWidget {
             ),
           ),
           child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// The withheld name of a level that has not been cleared.
+///
+/// The node the player is about to open says CLASSIFIED — it is about to be
+/// revealed, and showing it the same blocks as an unreachable level made the
+/// next move look locked. Everything else gets the redaction plate.
+class _MaskedName extends StatelessWidget {
+  const _MaskedName({required this.state});
+
+  final _NodeState state;
+
+  @override
+  Widget build(BuildContext context) {
+    if (state == _NodeState.current) {
+      return Text(
+        'CLASSIFIED',
+        style: AppText.title(size: 14, color: AppColors.textSecondary),
+      );
+    }
+
+    final double alpha = state == _NodeState.noData ? 0.16 : 0.3;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.border.withValues(alpha: alpha)),
+      ),
+      child: Text(
+        '████',
+        style: AppText.mono(
+          size: 9,
+          color: AppColors.textSecondary.withValues(alpha: alpha + 0.08),
         ),
       ),
     );
