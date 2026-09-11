@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:market_nerve/app/widgets/hud.dart';
 import 'package:market_nerve/data/sample/dev_sample_level.dart';
 import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
 
@@ -26,8 +27,9 @@ void main() {
 
     expect(tester.takeException(), isNull);
 
-    // Blind mode: the masked ticker is on screen, the real asset name is not.
-    expect(find.text('████ ██'), findsOneWidget);
+    // Blind mode: the redaction plate is on screen, the real asset name is
+    // not.
+    expect(find.byType(RedactionPlate), findsOneWidget);
     expect(find.text(DevSampleLevel.assetLabel), findsNothing);
     expect(find.text('DAY 1 / 130'), findsOneWidget);
 
@@ -44,13 +46,15 @@ void main() {
   testWidgets('START RUN begins playback', (WidgetTester tester) async {
     await pumpLevelScreen(tester);
 
-    expect(find.text('READY'), findsOneWidget);
+    expect(find.text('START RUN'), findsOneWidget);
+    expect(find.text('NO DECISION PENDING'), findsNothing);
 
     await tester.tap(find.text('START RUN'));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('RUNNING'), findsOneWidget);
+    expect(find.text('NO DECISION PENDING'), findsOneWidget);
+    expect(find.text('START RUN'), findsNothing);
 
     // Let the replay timer advance past a few candles.
     await tester.pump(const Duration(milliseconds: 500));
@@ -93,7 +97,11 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('DEBRIEF'), findsOneWidget);
     expect(find.text('DISCIPLINE SCORE'), findsOneWidget);
-    // Blind mode is over: the real asset name is finally on screen.
+
+    // Blind mode is over: the reveal names the real asset. It starts closed
+    // (artboard 1e), so open it first.
+    await tester.tap(find.text('THE REVEAL'));
+    await tester.pumpAndSettle();
     expect(find.text(DevSampleLevel.assetLabel), findsOneWidget);
   });
 }

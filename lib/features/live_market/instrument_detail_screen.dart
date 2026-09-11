@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets/feed_state.dart';
 import '../../core/market/candle.dart';
 import '../../core/market/instrument.dart';
 import '../../core/market/market_data_provider.dart';
@@ -399,28 +400,11 @@ class _ChartError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Icon(
-              Icons.cloud_off_outlined,
-              color: AppColors.textFaint,
-              size: 28,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppText.body(size: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      ),
+    // The full-pane failure from the feed grammar (artboard 1l): says what
+    // failed and offers the one fix, never a blank chart.
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: FeedFailurePane(message: message, onRetry: onRetry),
     );
   }
 }

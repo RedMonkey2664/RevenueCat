@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../app/widgets/feed_state.dart';
+import '../../../app/widgets/hud.dart';
 import '../../../app/widgets/pressable.dart';
 import '../../../core/services/progress_service.dart';
+import '../../../core/services/purchases_service.dart';
 import '../../../data/sample/dev_sample_level.dart';
-import '../../profile/profile_screen.dart';
-import '../engine/level_model.dart';
+import '../../daily_pivot/services/pivot_controller.dart'
+    show pivotStreakProvider;
+import '../../paywall/paywall_screen.dart';
+import '../../profile/nerve_profile_screen.dart';
 import '../custom/custom_sim_setup_screen.dart';
 import '../endless/endless_home.dart';
+import '../engine/level_model.dart';
 import '../engine/simulation_mode.dart';
 import '../level/level_screen.dart';
 import 'level_repository.dart';
 import 'widgets/campaign_path.dart';
 
-/// Simulator tab: mode choice, the campaign map, and the dev sample run.
+/// Simulator tab: the campaign as an S-curve path (artboard 1f), with the two
+/// other ways into the engine — Custom Simulation and Endless — above it.
 ///
 /// The map is driven entirely by `level_manifest.json` — adding or reordering
 /// a level is a data change, never a code change (CLAUDE.md).
@@ -26,8 +34,6 @@ class CampaignHome extends ConsumerStatefulWidget {
 }
 
 class _CampaignHomeState extends ConsumerState<CampaignHome> {
-  // TODO(persistence): worth remembering in progress_service once there is a
-  // real level to return to.
   SimulationMode _mode = SimulationMode.beginner;
 
   /// Null shows every market. LEVELS.md wants "which market am I in" obvious
@@ -36,238 +42,166 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<LevelManifestEntry>> manifest =
-        ref.watch(levelManifestProvider);
+    final AsyncValue<List<LevelManifestEntry>> manifest = ref.watch(
+      levelManifestProvider,
+    );
     final ProgressState progress = ref.watch(progressProvider);
+    final int streak = ref.watch(pivotStreakProvider);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              0,
-            ),
-            sliver: SliverList.list(
-              children: <Widget>[
-                // The canvas leads with the wordmark and two round icon
-                // buttons rather than an app bar, so the stats strip can sit
-                // directly under it. The headline sentence is gone: 1f uses
-                // "MARKET NERVE / CAMPAIGN" and lets the strip carry the
-                // context the sentence used to.
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            'MARKET NERVE',
-                            style: AppText.railLabel(
-                              size: 26,
-                              weight: FontWeight.w700,
-                              letterSpacing: 26 * 0.14,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text('CAMPAIGN', style: AppText.label(size: 10)),
-                        ],
-                      ),
-                    ),
-                    _RoundButton(
-                      icon: Icons.tune,
-                      tooltip: 'Play mode',
-                      onTap: () => setState(
-                        () => _mode = _mode.isBeginner
-                            ? SimulationMode.advanced
-                            : SimulationMode.beginner,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _RoundButton(
-                      icon: Icons.person_outline,
-                      tooltip: 'Profile',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const ProfileScreen(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _StatsStrip(
-                  progress: progress,
-                  totalLevels: manifest.maybeWhen(
-                    data: (List<LevelManifestEntry> all) => all.length,
-                    orElse: () => 0,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                // The mode the strip's buttons toggle is still selectable
-                // explicitly — the round button alone is too quiet for a
-                // choice that changes how the whole run behaves.
-                _ModeSelector(
-                  selected: _mode,
-                  onChanged: (SimulationMode m) => setState(() => _mode = m),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _DevRunCard(
-                  // rootNavigator: a run is a full-screen mode, not a page
-                  // inside the Simulator tab — the bottom nav both distracts
-                  // and steals ~58pt from the chart.
-                  onTap: () => Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => LevelScreen(
-                        level: DevSampleLevel.build(),
-                        mode: _mode,
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md + 4,
+                AppSpacing.lg,
+                AppSpacing.md + 4,
+                0,
+              ),
+              sliver: SliverList.list(
+                children: <Widget>[
+                  _Header(
+                    mode: _mode,
+                    onSettings: _openSettings,
+                    onProfile: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NerveProfileScreen(),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _ModeCard(
-                  icon: Icons.shuffle,
-                  title: 'Endless',
-                  subtitle: 'A random six-month window you have never seen.',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => EndlessHome(mode: _mode),
+                  const SizedBox(height: AppSpacing.lg),
+                  _StatsStrip(
+                    progress: progress,
+                    streak: streak,
+                    totalLevels: manifest.maybeWhen(
+                      data: (List<LevelManifestEntry> all) => all.length,
+                      orElse: () => 0,
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _ModeCard(
-                  icon: Icons.tune,
-                  title: 'Custom simulation',
-                  subtitle:
-                      'Pick any instrument and any dates. Real prices, '
-                      'fetched live.',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const CustomSimSetupScreen(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _EntryCard(
+                    icon: Icons.gps_not_fixed,
+                    title: 'CUSTOM SIMULATION',
+                    body:
+                        'Any instrument, any dates.\nBuild your own scenario.',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CustomSimSetupScreen(),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Container(height: 1, color: AppColors.border),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'SELECT MISSION',
-                  style: AppText.railLabel(
-                    size: 15,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 15 * 0.24,
+                  const SizedBox(height: AppSpacing.sm + 4),
+                  _EntryCard(
+                    icon: Icons.shuffle,
+                    title: 'ENDLESS',
+                    body: 'A window you have never seen.\nBlind, like the '
+                        'campaign.',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => EndlessHome(mode: _mode),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm + 2),
-                _MarketFilter(
-                  selected: _market,
-                  counts: manifest.maybeWhen(
-                    data: _countByMarket,
-                    orElse: () => const <AssetClass, int>{},
+                  const SizedBox(height: AppSpacing.xl),
+                  Container(height: 1, color: AppColors.border),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    'SELECT MISSION',
+                    style: AppText.railLabel(
+                      size: 22,
+                      weight: FontWeight.w800,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 22 * 0.3,
+                    ),
                   ),
-                  onChanged: (AssetClass? m) => setState(() => _market = m),
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
-            ),
-          ),
-          manifest.when(
-            loading: () => const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
-                child: Center(child: CircularProgressIndicator()),
+                  const SizedBox(height: AppSpacing.md + 4),
+                  _MarketFilter(
+                    selected: _market,
+                    onChanged: (AssetClass? m) => setState(() => _market = m),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
               ),
             ),
-            error: (Object e, StackTrace s) => SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ),
-                child: _Notice(
-                  title: 'THE LEVEL MANIFEST COULD NOT BE READ',
-                  body: '$e',
-                  color: AppColors.down,
+            manifest.when(
+              loading: () => const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.xl),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
-            ),
-            data: (List<LevelManifestEntry> all) {
-              final List<LevelManifestEntry> entries = _market == null
-                  ? all
-                  : all
-                      .where((LevelManifestEntry e) => e.assetClass == _market)
-                      .toList();
-              // The S-curve path replaces the tile grid (artboard 1f). It
-              // sizes itself to the level count, so it goes in a plain
-              // SliverToBoxAdapter rather than a sliver grid.
-              return SliverToBoxAdapter(
+              error: (Object e, StackTrace s) => SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
+                    horizontal: AppSpacing.md + 4,
                   ),
-                  child: CampaignPath(
-                    entries: entries,
-                    progress: progress,
-                    onTap: (LevelManifestEntry entry) {
-                      // Only a level with real, sourced data is launchable.
-                      // Everything else still responds and explains itself.
-                      if (entry.dataStatus.isPlayable) {
-                        _launch(context, entry);
-                      } else {
-                        _explainUnsourced(context, entry);
-                      }
-                    },
+                  child: SizedBox(
+                    height: 200,
+                    child: FeedFailurePane(
+                      title: 'THE LEVEL MANIFEST COULD NOT BE READ',
+                      message: '$e',
+                    ),
                   ),
                 ),
-              );
-            },
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            sliver: SliverList.list(
-              children: const <Widget>[
-                SizedBox(height: AppSpacing.sm),
-                _Notice(
-                  title: 'WHY NOTHING IS PLAYABLE YET',
-                  body: 'No campaign level has a historical data source that '
-                      'can be legally bundled with the app yet. Every price, '
-                      'date and "optimal move" has to trace to a real, sourced '
-                      'value — so these tiles stay empty rather than shipping '
-                      'invented numbers. Tap any tile to see what it is '
-                      'waiting on.',
-                  color: AppColors.border,
-                ),
-                SizedBox(height: AppSpacing.xl),
-              ],
+              ),
+              data: (List<LevelManifestEntry> all) {
+                final List<LevelManifestEntry> entries = _market == null
+                    ? all
+                    : all
+                          .where(
+                            (LevelManifestEntry e) => e.assetClass == _market,
+                          )
+                          .toList();
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                    ),
+                    child: CampaignPath(
+                      entries: entries,
+                      progress: progress,
+                      onTap: _onNode,
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        ],
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+          ],
+        ),
       ),
     );
   }
 
-  static Map<AssetClass, int> _countByMarket(List<LevelManifestEntry> all) {
-    final Map<AssetClass, int> counts = <AssetClass, int>{};
-    for (final LevelManifestEntry e in all) {
-      counts[e.assetClass] = (counts[e.assetClass] ?? 0) + 1;
+  Future<void> _onNode(LevelManifestEntry entry) async {
+    // Only a level with real, sourced data is launchable. Everything else
+    // still responds and explains itself.
+    if (!entry.dataStatus.isPlayable) {
+      _explainUnsourced(context, entry);
+      return;
     }
-    return counts;
+    // MONETIZATION.md: the campaign level loader is one of exactly two places
+    // the `pro` check belongs.
+    if (!entry.isFree && !ref.read(proAccessProvider).hasPro) {
+      final bool unlocked = await PaywallScreen.show(context);
+      if (!unlocked || !mounted) return;
+    }
+    await _launch(entry);
   }
 
-  Future<void> _launch(BuildContext context, LevelManifestEntry entry) async {
-    // TODO(phase8): MONETIZATION.md puts the `pro` entitlement check here and
-    // at the Endless entry point — the only two places it belongs.
-    final NavigatorState navigator =
-        Navigator.of(context, rootNavigator: true);
+  Future<void> _launch(LevelManifestEntry entry) async {
+    // rootNavigator: a run is a full-screen mode, not a page inside the
+    // Simulator tab — the bottom nav both distracts and steals the chart's
+    // height.
+    final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     try {
-      final SimulationLevel level =
-          await ref.read(levelRepositoryProvider).loadLevel(entry);
+      final SimulationLevel level = await ref
+          .read(levelRepositoryProvider)
+          .loadLevel(entry);
       await navigator.push(
         MaterialPageRoute<void>(
           builder: (_) => LevelScreen(level: level, mode: _mode),
@@ -279,417 +213,102 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
       );
     }
   }
+
+  void _openSettings() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext sheetContext) => _RunSettingsSheet(
+        mode: _mode,
+        onMode: (SimulationMode m) => setState(() => _mode = m),
+        onDevRun: () {
+          Navigator.of(sheetContext).pop();
+          Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  LevelScreen(level: DevSampleLevel.build(), mode: _mode),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
-
-
-class _Notice extends StatelessWidget {
-  const _Notice({
-    required this.title,
-    required this.body,
-    required this.color,
+/// "MARKET NERVE / CAMPAIGN" and the two round buttons.
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.mode,
+    required this.onSettings,
+    required this.onProfile,
   });
 
-  final String title;
-  final String body;
-  final Color color;
+  final SimulationMode mode;
+  final VoidCallback onSettings;
+  final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.6),
-        border: Border(left: BorderSide(color: color, width: 2)),
-        borderRadius: const BorderRadius.horizontal(right: AppRadius.chipR),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(title, style: AppText.label(size: 9.5)),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            body,
-            style: AppText.body(
-              size: 12.5,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The dev-only synthetic run. Styled as a distinct utility strip rather than
-/// a hero card so it never reads as the product's main entry point.
-class _DevRunCard extends StatelessWidget {
-  const _DevRunCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      minTarget: 0,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: statePanelDecoration(
-          AppColors.down,
-          fillOpacity: 0.07,
-          borderOpacity: 0.35,
-        ),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: AppColors.down.withValues(alpha: 0.14),
-                borderRadius: AppRadius.chip,
-              ),
-              child: const Icon(
-                Icons.science_outlined,
-                size: 18,
-                color: AppColors.down,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        'Engine test run',
-                        style: AppText.body(
-                          size: 15,
-                          weight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.down.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Text(
-                          'DEV',
-                          style: AppText.label(
-                            color: AppColors.down,
-                            size: 8.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Synthetic data. Proves the engine, teaches nothing.',
-                    style: AppText.body(
-                      size: 12.5,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward,
-              size: 16,
-              color: AppColors.textFaint,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Beginner vs Advanced, as a segmented control with a sliding indicator.
-class _ModeSelector extends StatelessWidget {
-  const _ModeSelector({required this.selected, required this.onChanged});
-
-  final SimulationMode selected;
-  final ValueChanged<SimulationMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final int index = SimulationMode.values.indexOf(selected);
-
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.border),
-            borderRadius: AppRadius.chip,
-          ),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints c) {
-              final double w = c.maxWidth / SimulationMode.values.length;
-              return SizedBox(
-                height: 38,
-                child: Stack(
-                  children: <Widget>[
-                    AnimatedPositioned(
-                      duration: AppMotion.normal,
-                      curve: AppMotion.curve,
-                      left: index * w,
-                      width: w,
-                      top: 0,
-                      bottom: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.accent.withValues(alpha: 0.16),
-                          border: Border.all(
-                            color: AppColors.accent.withValues(alpha: 0.7),
-                          ),
-                          borderRadius: BorderRadius.circular(5),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'MARKET NERVE',
+                  style: AppText.railLabel(
+                    size: 38,
+                    weight: FontWeight.w800,
+                    letterSpacing: 38 * 0.12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              // The run mode is a choice that changes how every level plays,
+              // so it is named where the player always looks.
+              Text.rich(
+                TextSpan(
+                  children: <InlineSpan>[
+                    TextSpan(
+                      text: 'CAMPAIGN',
+                      style: AppText.label(size: 13, letterSpacing: 13 * 0.3),
+                    ),
+                    if (mode.isAdvanced)
+                      TextSpan(
+                        text: ' · ADVANCED',
+                        style: AppText.label(
+                          size: 13,
+                          color: AppColors.caution,
+                          letterSpacing: 13 * 0.3,
                         ),
                       ),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        for (final SimulationMode m in SimulationMode.values)
-                          Expanded(
-                            child: Pressable(
-                              onTap: () => onChanged(m),
-                              minTarget: 0,
-                              scale: 1,
-                              child: Center(
-                                child: AnimatedDefaultTextStyle(
-                                  duration: AppMotion.normal,
-                                  style: AppText.body(
-                                    size: 13,
-                                    weight: FontWeight.w600,
-                                    color: m == selected
-                                        ? AppColors.accent
-                                        : AppColors.textSecondary,
-                                  ),
-                                  child: Text(m.label),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
                   ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        AnimatedSwitcher(
-          duration: AppMotion.normal,
-          child: Text(
-            selected.blurb,
-            key: ValueKey<SimulationMode>(selected),
-            style: AppText.body(size: 12.5, color: AppColors.textFaint),
-          ),
+        _RoundButton(
+          icon: Icons.settings_outlined,
+          tooltip: 'Run settings',
+          onTap: onSettings,
+        ),
+        const SizedBox(width: AppSpacing.sm + 2),
+        _RoundButton(
+          icon: Icons.radio_button_checked,
+          tooltip: 'Nerve Profile',
+          onTap: onProfile,
         ),
       ],
     );
   }
 }
 
-/// The three-way market filter LEVELS.md asks for on the campaign home:
-/// International / Indian / Bitcoin, plus an "All" default.
-///
-/// The engine is indifferent to market (ENGINE.md, one engine regardless of
-/// asset_class) — this is purely player-facing framing, and it is also where
-/// the per-market licensing story becomes visible.
-class _MarketFilter extends StatelessWidget {
-  const _MarketFilter({
-    required this.selected,
-    required this.counts,
-    required this.onChanged,
-  });
-
-  final AssetClass? selected;
-  final Map<AssetClass, int> counts;
-  final ValueChanged<AssetClass?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final int total = counts.values.fold(0, (int a, int b) => a + b);
-
-    return SizedBox(
-      height: 34,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: <Widget>[
-          _MarketChip(
-            label: 'All',
-            count: total,
-            selected: selected == null,
-            onTap: () => onChanged(null),
-          ),
-          for (final AssetClass m in AssetClass.values)
-            _MarketChip(
-              label: m.label,
-              count: counts[m] ?? 0,
-              selected: selected == m,
-              onTap: () => onChanged(m),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MarketChip extends StatelessWidget {
-  const _MarketChip({
-    required this.label,
-    required this.count,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final int count;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.sm),
-      child: Pressable(
-        onTap: onTap,
-        minTarget: 0,
-        child: AnimatedContainer(
-          duration: AppMotion.fast,
-          curve: AppMotion.curve,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md - 2,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.accent.withValues(alpha: 0.14)
-                : AppColors.surface,
-            border: Border.all(
-              color: selected ? AppColors.accent : AppColors.border,
-            ),
-            borderRadius: AppRadius.chip,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                label,
-                style: AppText.body(
-                  size: 12.5,
-                  weight: FontWeight.w600,
-                  color:
-                      selected ? AppColors.accent : AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                count.toString(),
-                style: AppText.mono(
-                  size: 10.5,
-                  weight: FontWeight.w700,
-                  color: selected
-                      ? AppColors.accent.withValues(alpha: 0.8)
-                      : AppColors.textFaint,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Entry to a run that is not a numbered campaign level.
-///
-/// Endless and the Custom Simulation are different *kinds* of thing from a
-/// level, so they sit above the map rather than in it — and they share one
-/// card so the two never drift apart visually.
-class _ModeCard extends StatelessWidget {
-  const _ModeCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      minTarget: 0,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: statePanelDecoration(
-          AppColors.accent,
-          fillOpacity: 0.06,
-          borderOpacity: 0.35,
-        ),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.14),
-                borderRadius: AppRadius.chip,
-              ),
-              child: Icon(icon, size: 17, color: AppColors.accent),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    title,
-                    style: AppText.body(size: 15, weight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppText.body(
-                      size: 12.5,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward,
-              size: 16,
-              color: AppColors.textFaint,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A 34pt round icon button, as the canvas's header uses.
 class _RoundButton extends StatelessWidget {
   const _RoundButton({
     required this.icon,
@@ -708,27 +327,17 @@ class _RoundButton extends StatelessWidget {
       child: Semantics(
         button: true,
         label: tooltip,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        child: Pressable(
           onTap: onTap,
-          // The circle is 34pt to match the canvas, but the hit box is the
-          // full 44 — kMinTouchTarget is not negotiable.
-          child: SizedBox(
-            width: kMinTouchTarget,
-            height: kMinTouchTarget,
-            child: Center(
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Icon(icon, size: 15, color: AppColors.textSecondary),
-              ),
+          minTarget: kMinTouchTarget,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.borderStrong),
             ),
+            child: Icon(icon, size: 16, color: AppColors.textSecondary),
           ),
         ),
       ),
@@ -738,14 +347,20 @@ class _RoundButton extends StatelessWidget {
 
 /// The four-cell stats strip under the wordmark.
 ///
-/// STREAK has no data behind it: the Daily Pivot is unbuilt, so there is no
-/// streak to report. It shows an em dash rather than a zero, because a zero
-/// would read as "you broke your streak" and CLAUDE.md forbids presenting a
-/// number the app cannot stand behind.
+/// Glyphs are drawn, not typed: ⚡ is an emoji-presentation character and
+/// renders as a yellow cartoon bolt on both phone platforms, which is not
+/// the line glyph the wireframe draws.
 class _StatsStrip extends StatelessWidget {
-  const _StatsStrip({required this.progress, required this.totalLevels});
+  const _StatsStrip({
+    required this.progress,
+    required this.streak,
+    required this.totalLevels,
+  });
 
   final ProgressState progress;
+
+  /// The Daily Pivot streak — consecutive resolved days taken part in.
+  final int streak;
   final int totalLevels;
 
   /// Mean best score across levels that have actually been graded.
@@ -762,35 +377,63 @@ class _StatsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(border: Border.all(color: AppColors.border)),
-      child: Row(
-        children: <Widget>[
-          _StatCell(
-            glyph: '◆',
-            value: '—',
-            label: 'STREAK',
-            color: AppColors.caution,
-            // The one cell whose underline marks it as not yet real.
-            pending: true,
-          ),
-          _StatCell(
-            glyph: '★',
-            value: _avgScore,
-            label: 'AVG SCORE',
-          ),
-          _StatCell(
-            glyph: '✓',
-            value: '${progress.clearedCount}/$totalLevels',
-            label: 'CLEARED',
-          ),
-          _StatCell(
-            glyph: '⚡',
-            value: '${progress.pivotBonusPoints}',
-            label: 'PIVOT DP',
-            color: AppColors.accent,
-          ),
-        ],
+      decoration: BoxDecoration(
+        color: AppColors.surface.withValues(alpha: 0.5),
+        border: Border.all(color: AppColors.border),
       ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _StatCell(
+              glyph: const _Diamond(),
+              value: '$streak',
+              valueColor: AppColors.caution,
+              label: 'STREAK',
+              // A live streak is underlined, the way the wireframe marks it.
+              underline: streak > 0,
+              first: true,
+            ),
+            _StatCell(
+              glyph: const Icon(
+                Icons.star_border,
+                size: 19,
+                color: AppColors.textPrimary,
+              ),
+              value: _avgScore,
+              label: 'AVG SCORE',
+            ),
+            _StatCell(
+              glyph: const Icon(
+                Icons.check,
+                size: 19,
+                color: AppColors.textPrimary,
+              ),
+              value: '${progress.clearedCount}/$totalLevels',
+              label: 'CLEARED',
+            ),
+            _StatCell(
+              glyph: const Icon(Icons.bolt, size: 20, color: AppColors.accent),
+              value: '${progress.pivotBonusPoints}',
+              valueColor: AppColors.accent,
+              label: 'PIVOT DP',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The streak's amber diamond.
+class _Diamond extends StatelessWidget {
+  const _Diamond();
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: 0.785398,
+      child: Container(width: 11, height: 11, color: AppColors.caution),
     );
   }
 }
@@ -800,15 +443,17 @@ class _StatCell extends StatelessWidget {
     required this.glyph,
     required this.value,
     required this.label,
-    this.color,
-    this.pending = false,
+    this.valueColor = AppColors.textPrimary,
+    this.underline = false,
+    this.first = false,
   });
 
-  final String glyph;
+  final Widget glyph;
   final String value;
   final String label;
-  final Color? color;
-  final bool pending;
+  final Color valueColor;
+  final bool underline;
+  final bool first;
 
   @override
   Widget build(BuildContext context) {
@@ -816,30 +461,351 @@ class _StatCell extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
-            left: BorderSide(
-              color: label == 'STREAK'
-                  ? Colors.transparent
-                  : AppColors.border.withValues(alpha: 0.6),
-            ),
-            bottom: pending
-                ? const BorderSide(color: AppColors.caution, width: 2)
-                : BorderSide.none,
+            left: first
+                ? BorderSide.none
+                : const BorderSide(color: AppColors.border),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+        child: Stack(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                4,
+                AppSpacing.md + 4,
+                4,
+                AppSpacing.md,
+              ),
+              child: Column(
+                children: <Widget>[
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: <Widget>[
+                        glyph,
+                        const SizedBox(width: 8),
+                        Text(
+                          value,
+                          style: AppText.display(
+                            size: 26,
+                            color: valueColor,
+                            height: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm + 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: AppText.label(size: 10, letterSpacing: 10 * 0.2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (underline)
+              const Positioned(
+                left: 0,
+                bottom: 0,
+                width: 70,
+                height: 3,
+                child: ColoredBox(color: AppColors.accent),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Entry to a run that is not a numbered campaign level. Endless and the
+/// Custom Simulation are different *kinds* of thing from a level, so they sit
+/// above the map rather than in it, and share one card so they never drift.
+class _EntryCard extends StatelessWidget {
+  const _EntryCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      minTarget: 0,
+      scale: 0.985,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md + 6,
+          AppSpacing.md + 2,
+          AppSpacing.md + 6,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.5),
+          border: Border.all(color: AppColors.borderStrong),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, size: 22, color: AppColors.accent),
+            const SizedBox(width: AppSpacing.md + 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.railLabel(
+                      size: 16.5,
+                      weight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      letterSpacing: 16.5 * 0.16,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    body,
+                    style: AppText.body(
+                      size: 14.5,
+                      color: AppColors.textSecondary,
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              size: 22,
+              color: AppColors.textFaint,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// All / International / Indian / Crypto.
+///
+/// The engine is indifferent to market (ENGINE.md) — this is purely
+/// player-facing framing, which LEVELS.md asks to be obvious at a glance.
+class _MarketFilter extends StatelessWidget {
+  const _MarketFilter({required this.selected, required this.onChanged});
+
+  final AssetClass? selected;
+  final ValueChanged<AssetClass?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: <Widget>[
+          _MarketChip(
+            label: 'All',
+            selected: selected == null,
+            onTap: () => onChanged(null),
+          ),
+          for (final AssetClass m in AssetClass.values)
+            _MarketChip(
+              label: m.label,
+              selected: selected == m,
+              onTap: () => onChanged(m),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarketChip extends StatelessWidget {
+  const _MarketChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.md),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: '$label levels',
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          child: AnimatedContainer(
+            duration: AppMotion.fast,
+            curve: AppMotion.curve,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg - 2),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.accent.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              border: Border.all(
+                color: selected ? AppColors.accent : AppColors.borderStrong,
+                width: selected ? 1.4 : 1,
+              ),
+            ),
+            child: Text(
+              label,
+              style: AppText.body(
+                size: 17,
+                weight: FontWeight.w500,
+                color: selected ? AppColors.accent : AppColors.textSecondary,
+                letterSpacing: 17 * 0.1,
+                height: 1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ⚙ — how the next run plays, and the development sample.
+class _RunSettingsSheet extends StatefulWidget {
+  const _RunSettingsSheet({
+    required this.mode,
+    required this.onMode,
+    required this.onDevRun,
+  });
+
+  final SimulationMode mode;
+  final ValueChanged<SimulationMode> onMode;
+  final VoidCallback onDevRun;
+
+  @override
+  State<_RunSettingsSheet> createState() => _RunSettingsSheetState();
+}
+
+class _RunSettingsSheetState extends State<_RunSettingsSheet> {
+  late SimulationMode _mode = widget.mode;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md + 4,
+          AppSpacing.lg,
+          AppSpacing.md + 4,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text('RUN SETTINGS', style: AppText.railLabel(size: 16)),
+            const SizedBox(height: AppSpacing.lg),
+            Text('MODE', style: AppText.label(size: 11)),
+            const SizedBox(height: AppSpacing.sm + 2),
+            for (final SimulationMode m in SimulationMode.values) ...<Widget>[
+              _ModeOption(
+                mode: m,
+                selected: m == _mode,
+                onTap: () {
+                  setState(() => _mode = m);
+                  widget.onMode(m);
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm + 2),
+            ],
+            const SizedBox(height: AppSpacing.lg),
+            Text('DEVELOPMENT', style: AppText.label(size: 11)),
+            const SizedBox(height: AppSpacing.sm + 2),
+            HudButton(
+              label: 'ENGINE TEST RUN',
+              subtitle: 'SYNTHETIC DATA',
+              color: AppColors.down,
+              height: 52,
+              fontSize: 14,
+              letterSpacingEm: 0.18,
+              onPressed: widget.onDevRun,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Proves the engine, teaches nothing. Its prices are generated, '
+              'and it never counts towards your progress.',
+              style: AppText.body(size: 12.5, color: AppColors.textFaint),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeOption extends StatelessWidget {
+  const _ModeOption({
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final SimulationMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color c = mode.isAdvanced ? AppColors.caution : AppColors.accent;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: selected ? c.withValues(alpha: 0.08) : Colors.transparent,
+            border: Border.all(
+              color: selected ? c : AppColors.border,
+              width: selected ? 1.3 : 1,
+            ),
+          ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                '$glyph $value',
-                style: AppText.display(
-                  size: 22,
-                  weight: FontWeight.w700,
-                  color: color ?? AppColors.textPrimary,
+                '${mode.label.toUpperCase()} RUN',
+                style: AppText.railLabel(
+                  size: 15,
+                  color: selected ? c : AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(label, style: AppText.label(size: 8)),
+              const SizedBox(height: AppSpacing.xs + 2),
+              Text(
+                mode.blurb,
+                style: AppText.body(size: 13, color: AppColors.textSecondary),
+              ),
             ],
           ),
         ),
@@ -850,9 +816,8 @@ class _StatCell extends StatelessWidget {
 
 /// Explains why a node cannot be played.
 ///
-/// This lived on the old level tile, which the path map replaced. The copy is
-/// unchanged: a level that cannot ship says so plainly rather than being
-/// quietly absent, and it never blames the player.
+/// A level that cannot ship says so plainly rather than being quietly absent,
+/// and it never blames the player.
 void _explainUnsourced(BuildContext context, LevelManifestEntry entry) {
   const String paragraphBreak = '\n\n';
   const String licenceNote =
@@ -861,35 +826,38 @@ void _explainUnsourced(BuildContext context, LevelManifestEntry entry) {
       'not ship.';
 
   final String message = switch (entry.dataStatus) {
-    LevelDataStatus.needsDecision => entry.openQuestion ??
-        'This level needs a product decision before it can be built.',
+    LevelDataStatus.needsDecision =>
+      entry.openQuestion ??
+          'This level needs a product decision before it can be built.',
     LevelDataStatus.pendingSource => <String>[
-        'Waiting on ${entry.assetClass.label} market data that can be '
-            'legally bundled with the app.',
-        licenceNote,
-        if (entry.openQuestion != null) entry.openQuestion!,
-      ].join(paragraphBreak),
-    LevelDataStatus.sourced => entry.licence.isCleared
-        ? 'This level is not unlocked yet.'
-        : 'This level is built and playable, but its data source is not '
-            'cleared for release. It runs in development and demo builds; '
-            'publishing it needs a licensed source first.',
+      'Waiting on ${entry.assetClass.label} market data that can be '
+          'legally bundled with the app.',
+      licenceNote,
+      if (entry.openQuestion != null) entry.openQuestion!,
+    ].join(paragraphBreak),
+    LevelDataStatus.sourced =>
+      entry.licence.isCleared
+          ? 'This level is not unlocked yet.'
+          : 'This level is built and playable, but its data source is not '
+                'cleared for release. It runs in development and demo builds; '
+                'publishing it needs a licensed source first.',
   };
 
   showDialog<void>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
-      backgroundColor: AppColors.surfaceRaised,
-      shape: const RoundedRectangleBorder(borderRadius: AppRadius.card),
-      title: Text(entry.maskedTitle, style: AppText.title(size: 17)),
+      title: Text(
+        entry.maskedTitle,
+        style: AppText.railLabel(size: 17, color: AppColors.textPrimary),
+      ),
       content: Text(
         message,
-        style: AppText.body(size: 13, color: AppColors.textSecondary),
+        style: AppText.body(size: 13.5, color: AppColors.textSecondary),
       ),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: const Text('CLOSE'),
         ),
       ],
     ),

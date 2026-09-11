@@ -18,7 +18,7 @@ import '../engine/level_model.dart';
 enum AssetClass {
   usEquity('us_equity', 'International', 'INTL'),
   indiaEquity('india_equity', 'Indian', 'IND'),
-  crypto('crypto', 'Bitcoin', 'BTC');
+  crypto('crypto', 'Crypto', 'BTC');
 
   const AssetClass(this.wireName, this.label, this.shortCode);
 

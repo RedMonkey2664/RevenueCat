@@ -188,3 +188,37 @@ provider directly, so replacing a source for a market is one change in
 4. From there it is the standard Simulator flow — same engine, same scoring,
    same debrief. The only difference is `revealFromStart: true`, since the
    player chose the instrument and there is nothing for blind mode to hide.
+
+## Added with the wireframe implementation (Sep 2026)
+
+    lib/
+      app/
+        shell_state.dart            # current tab (so the Pivot can send you to
+                                    # the Simulator) + the Simulator tab's key
+        widgets/hud.dart, hud_accordion.dart, feed_state.dart, nerve_avatar.dart
+      core/services/
+        purchases_service.dart      # PurchasesService + ProAccess (see below)
+        run_history_service.dart    # finished runs as behavioural samples
+      features/
+        daily_pivot/
+          model/pivot_models.dart   # IST clock, question, vote, tally, scoring
+          services/pivot_price_service.dart  # strike + 17:00 close + tape, via
+                                             # MarketDataService (Binance)
+          services/pivot_backend.dart        # PivotBackend; LocalPivotBackend
+          services/pivot_store.dart          # this device's votes/outcomes/awards
+          services/pivot_controller.dart     # the day as a phase machine
+          widgets/pivot_parts.dart, pivot_views.dart
+        paywall/paywall_screen.dart
+        profile/                    # Nerve Profile: model, radar, share card
+        simulator/debrief/run_record_builder.dart  # run -> RunRecord
+
+The Daily Pivot's client is complete; its crowd backend is not. There is no
+Firebase project config in the repository and the web preview excludes
+Firebase, so votes go to `LocalPivotBackend`, which is labelled in code as a
+placeholder and reports a one-device, non-aggregate tally. The screens never
+turn that into a percentage — they show the low-vote variant and name the
+source. Swapping in Firestore is a change to `pivotBackendProvider` only.
+
+The outcome does not need the backend: the client resolves each day against
+Binance's own one-minute bars (09:00 IST open for the strike, the 16:59 bar's
+close for the answer), stores it, and pays the award exactly once.

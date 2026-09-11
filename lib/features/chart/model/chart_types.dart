@@ -1,3 +1,4 @@
+import 'dart:ui' show Color;
 import 'package:flutter/foundation.dart';
 
 import '../../../core/market/bar_interval.dart';
@@ -201,4 +202,30 @@ class IndicatorSpec {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// A fixed price the host wants marked across the chart — the Daily Pivot's
+/// strike. Drawn dashed, with its label at the right-hand end, and never
+/// mistaken for a user drawing: it cannot be selected or moved.
+@immutable
+class ChartReferenceLine {
+  const ChartReferenceLine({
+    required this.price,
+    required this.label,
+    required this.color,
+  });
+
+  final double price;
+  final String label;
+  final Color color;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChartReferenceLine &&
+      other.price == price &&
+      other.label == label &&
+      other.color == color;
+
+  @override
+  int get hashCode => Object.hash(price, label, color);
 }

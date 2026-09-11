@@ -41,6 +41,8 @@ class ProChart extends StatefulWidget {
     this.onCrosshairChanged,
     this.showLastPriceLine = true,
     this.interactive = true,
+    this.showAxes = true,
+    this.referenceLine,
     super.key,
   });
 
@@ -81,6 +83,14 @@ class ProChart extends StatefulWidget {
   /// review panes and by the Time Machine card.
   final bool interactive;
 
+  /// False drops the price gutter and the time axis — a compact picture of
+  /// the tape, as the Daily Pivot draws it. The candles are the same
+  /// renderer as everywhere else; only the chrome goes.
+  final bool showAxes;
+
+  /// A fixed price marked across the plot, such as the Pivot's strike.
+  final ChartReferenceLine? referenceLine;
+
   @override
   State<ProChart> createState() => _ProChartState();
 }
@@ -102,6 +112,11 @@ class _ProChartState extends State<ProChart> {
   double _scaleStartBars = 0;
   double _scaleStartFirst = 0;
   Offset? _drawStart;
+
+  /// Set once the player pinches. Until then an auto-following chart
+  /// widens its window as bars arrive, up to [_followWindow].
+  bool _userZoomed = false;
+  static const double _followWindow = 90;
 
   List<Candle> get _rawBars {
     final BarInterval target = widget.settings.interval;
@@ -147,8 +162,17 @@ class _ProChartState extends State<ProChart> {
         // Follow the newest bar during replay, but only if the user has not
         // panned away to look at something. Yanking the view back under a
         // finger is the fastest way to make a chart feel broken.
+        // While the series is shorter than a comfortable window, the
+        // window grows with it. Otherwise a replay that starts from one
+        // bar stays zoomed to the 12-bar minimum for the whole run.
+        final double visible = _userZoomed
+            ? _viewport!.barsVisible
+            : math.max(
+                _viewport!.barsVisible,
+                math.min(_followWindow, barCount.toDouble()),
+              );
         _viewport = _viewport!
-            .copyWith(firstIndex: barCount - _viewport!.barsVisible)
+            .copyWith(firstIndex: barCount - visible, barsVisible: visible)
             .clamped(barCount);
       } else {
         _viewport = _viewport!.clamped(barCount);
@@ -177,6 +201,7 @@ class _ProChartState extends State<ProChart> {
 
     setState(() {
       if ((d.scale - 1).abs() > 0.01) {
+        _userZoomed = true;
         final double focal =
             ((d.localFocalPoint.dx - g.plot.left) / g.plot.width)
                 .clamp(0.0, 1.0);
@@ -283,6 +308,7 @@ class _ProChartState extends State<ProChart> {
 
   void _resetView(int barCount) {
     setState(() {
+      _userZoomed = false;
       _viewport = ChartViewport.initial(barCount);
       _crosshair = null;
       _crosshairBar = null;
@@ -329,6 +355,10 @@ class _ProChartState extends State<ProChart> {
         final ChartLayout layout = ChartLayout.compute(
           size,
           indicatorPaneCount: indicators.panes.length,
+          gutterWidth:
+              widget.showAxes ? ChartLayout.defaultGutterWidth : 0,
+          timeAxisHeight:
+              widget.showAxes ? ChartLayout.defaultTimeAxisHeight : 0,
         );
 
         final ChartViewport viewport = _viewport!;
@@ -383,6 +413,8 @@ class _ProChartState extends State<ProChart> {
                   selectedDrawingId: _selectedDrawing,
                   replayCursorIndex: widget.replayCursorIndex,
                   showLastPriceLine: widget.showLastPriceLine,
+                  showAxes: widget.showAxes,
+                  referenceLine: widget.referenceLine,
                 ),
               ),
             ),

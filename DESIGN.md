@@ -92,3 +92,47 @@ its Simulator counterpart.
   Simulator's debrief screen at a glance (same accent color, same number
   typography) — this is what turns a viral share into an actual funnel back to the
   core game, per the brief's stated growth-loop intent.
+
+## Revision — the cyan HUD (Sep 2026 wireframe set)
+
+The wireframe screenshots Somi supplied in September supersede the mint
+palette of `Market Nerve HUD.dc.html`. Same structure (rails, corner ticks,
+redaction plates, scanlines), different skin:
+
+- Palette: navy-black ground `#0A0E13`, one cyan accent `#5BC8F5` (also the
+  up colour — a gain is the nominal state), amber `#F5B041` for caution,
+  advanced mode and the SIMULATED framing, red `#EF5350` only for alarm and
+  losses. Tokens live in `lib/app/theme.dart`; every name is unchanged.
+- Type: **Inter** for every label, heading and sentence; **JetBrains Mono**
+  for anything that ticks (money, clocks, points). Both are bundled variable
+  fonts with the weight axis driven explicitly, and each falls back to the
+  other for glyphs it lacks (Mono has no rupee sign, Inter no ✕). Barlow
+  Condensed and IBM Plex Mono are removed.
+- Candles: hollow up, solid down. Wicks stop at the body.
+- Shared parts: `lib/app/widgets/hud.dart` (panels, corner-tick frames,
+  redaction plate, HUD buttons, status pip, top bar, scanlines),
+  `hud_accordion.dart`, `nerve_avatar.dart` and `feed_state.dart`.
+
+### Feed-state grammar (artboard 1l)
+One set of widgets draws live data everywhere: loading hatches the *value*
+(never the row, never a spinner alone); a live or delayed figure always names
+its source (`BINANCE · LIVE`, `YAHOO · DELAYED 15M` — the delay is measured
+from the quote's own timestamp, never assumed); an unavailable feed keeps its
+label, dashes the number and shows a red strip with RETRY; an empty list is a
+job with one action. A full-pane failure is hatched red with the one fix.
+Red strip = feed, red alarm = decision; they never appear together.
+
+### Screens added or rebuilt against the wireframes
+Campaign home (1f), the level screen's four states (1a–1d), the Debrief with
+its four accordions (1e), the Daily Pivot's four states (1g–1j) plus
+before-open and missed, the paywall (1k), feed states in Live Markets (1l),
+and the **Nerve Profile** — building / locked / full, with a shareable card.
+
+### Nerve Profile
+A behavioural read built only from the player's own runs: panic threshold
+(mean drawdown at the first sell of each run), crash-speed sensitivity (sell
+rate in fast vs slow falls), decision speed (median seconds on a halted
+tape), dip buying and learning (latest three runs vs first three). It never
+compares the player with other players — the app has no data about other
+players, and copy must not imply it does. Unlocks after five distinct levels;
+the archetype and overall score are free, the traits are Pro.

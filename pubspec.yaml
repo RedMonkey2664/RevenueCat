@@ -79,31 +79,10 @@ flutter:
 
   # Bundled, not fetched at runtime: DESIGN.md wants identical number
   # rendering on both platforms, and the Simulator has to work offline.
-  # Both are variable fonts, so one file covers every weight.
+  # Both are variable fonts, so one file covers every weight; AppText drives
+  # the wght axis explicitly. Both families are SIL Open Font License; see
+  # assets/fonts/OFL.txt.
   fonts:
-    # The tactical-ops HUD direction (Market Nerve HUD.dc.html). Bundled, not
-    # fetched, so iOS and Android render numerals identically -- DESIGN.md.
-    # Both families are SIL Open Font License; see assets/fonts/OFL.txt.
-    - family: BarlowCondensed
-      fonts:
-        - asset: assets/fonts/BarlowCondensed-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/BarlowCondensed-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/BarlowCondensed-ExtraBold.ttf
-          weight: 800
-    - family: IBMPlexMono
-      fonts:
-        - asset: assets/fonts/IBMPlexMono-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/IBMPlexMono-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
-          weight: 600
-    # Kept only so a stray reference does not fall back to the system face
-    # mid-migration. Delete once nothing names them.
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter.ttf

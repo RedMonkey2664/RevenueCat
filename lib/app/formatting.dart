@@ -30,3 +30,15 @@ String formatSignedPercent(double value, {int decimals = 1}) {
   final String sign = value >= 0 ? '+' : '-';
   return '$sign${value.abs().toStringAsFixed(decimals)}%';
 }
+
+/// US dollars with Western grouping and no decimals, e.g. `$80,066`. Used
+/// for the Daily Pivot, whose source (Binance BTC/USDT) quotes in dollars.
+String formatUsd(num value, {bool symbol = true}) {
+  final String digits = value.round().abs().toString();
+  final StringBuffer out = StringBuffer();
+  for (int i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) out.write(',');
+    out.write(digits[i]);
+  }
+  return '${value < 0 ? '-' : ''}${symbol ? r'$' : ''}$out';
+}

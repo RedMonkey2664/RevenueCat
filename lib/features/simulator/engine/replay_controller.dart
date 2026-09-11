@@ -219,6 +219,15 @@ final NotifierProvider<ReplayController, ReplayState> replayControllerProvider =
 class ReplayController extends Notifier<ReplayState> {
   Timer? _timer;
 
+  /// When playback last halted on a pause point, so the decision can carry
+  /// how long it took. Kept off [ReplayState]: it is bookkeeping for the
+  /// record, not something the screen draws.
+  DateTime? _haltedAt;
+
+  /// Injectable for tests; wall-clock time in the app.
+  @visibleForTesting
+  DateTime Function() clock = DateTime.now;
+
   @override
   ReplayState build() {
     final SimulationLevel level = ref.watch(currentLevelProvider);
@@ -274,6 +283,8 @@ class ReplayController extends Notifier<ReplayState> {
 
     final double price = state.currentCandle.close;
     final Portfolio updated = state.portfolio.apply(action, price);
+    final DateTime? haltedAt = _haltedAt;
+    _haltedAt = null;
 
     state = state.copyWith(
       portfolio: updated,
@@ -283,6 +294,7 @@ class ReplayController extends Notifier<ReplayState> {
           pausePoint: pausePoint,
           chosen: action,
           portfolioValueAtDecision: updated.valueAt(price),
+          timeToDecide: haltedAt == null ? null : clock().difference(haltedAt),
         ),
       ],
       resolvedPauseIndices: <int>{
@@ -374,6 +386,7 @@ class ReplayController extends Notifier<ReplayState> {
     if (pausePoint == null) return false;
 
     _cancelTimer();
+    _haltedAt = clock();
     state = state.copyWith(
       status: ReplayStatus.awaitingDecision,
       activePausePoint: pausePoint,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets/feed_state.dart';
 import '../../core/market/instrument.dart';
 import '../../core/market/market_data_service.dart';
 import 'broker_connect_screen.dart';
@@ -85,10 +86,7 @@ class _LiveMarketHomeState extends ConsumerState<LiveMarketHome>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'LIVE MARKETS',
-          style: AppText.label(color: AppColors.textPrimary),
-        ),
+        title: Text('LIVE MARKETS', style: AppText.railLabel(size: 17)),
         actions: <Widget>[
           IconButton(
             tooltip: 'Connect a broker',
@@ -146,6 +144,9 @@ class _LiveMarketHomeState extends ConsumerState<LiveMarketHome>
                             quote: quotes.quotes[instrument.id],
                             loading: quotes.loading,
                             onTap: () => _open(instrument),
+                            onRetry: () => ref
+                                .read(liveQuotesProvider.notifier)
+                                .refresh(force: true),
                           ),
                         );
                       },
@@ -270,31 +271,15 @@ class _EmptyWatchlist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // State 4 of the feed grammar: an empty list is a job, not an apology.
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text('WATCHLIST', style: AppText.label()),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Nothing here yet',
-              style: AppText.title(size: 18),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Add an index, a stock or a crypto pair to follow it live.',
-              textAlign: TextAlign.center,
-              style: AppText.body(size: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add a symbol'),
-            ),
-          ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.md + 4),
+        child: FeedEmptyState(
+          title: 'NOTHING ON THE WATCHLIST',
+          body: 'Add an instrument to track it — or simulate its last crash.',
+          actionLabel: 'ADD SYMBOL',
+          onAction: onAdd,
         ),
       ),
     );

@@ -2,77 +2,85 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/formatting.dart';
 import '../../../../app/theme.dart';
+import '../../../../app/widgets/hud.dart';
 
 /// The console HUD during play.
 ///
 /// This is where blind mode is enforced in the UI: the symbol slot shows a
-/// masked ticker and the date slot shows a relative day counter. Nothing here
-/// may leak the asset or the era — that is what makes a campaign level a real
-/// test on replay instead of a memory quiz (ENGINE.md §3).
+/// redaction plate and the date slot shows a relative day counter. Nothing
+/// here may leak the asset or the era — that is what makes a campaign level a
+/// real test on replay instead of a memory quiz (ENGINE.md §3).
 ///
-/// Structured to artboards 1a–1d of `Market Nerve HUD.dc.html`: identity on
-/// the left, money on the right, one rail underneath. The canvas keeps this
-/// band the *same height in all four states* — its note on 1d is explicit that
-/// when the trade panel needs room "the chart gives up 40pt here rather than
-/// the header. Same six regions, different loser." So nothing in here grows or
-/// shrinks with state; only colour changes.
+/// Structured to artboards 1a–1d: identity on the left, money on the right,
+/// one rail underneath. Only colour and the idle state's taller plate change
+/// between states — when the trade panel needs room, the chart gives it up,
+/// not this band.
 class BlindModeHeader extends StatelessWidget {
   const BlindModeHeader({
     required this.dayNumber,
     required this.totalDays,
     required this.portfolioValue,
-    required this.pnl,
     required this.pnlPercent,
     this.revealedAssetName,
-    this.stateColor,
+    this.stateColor = AppColors.accent,
     this.exposure,
+    this.idle = false,
+    this.halted = false,
+    this.callMarks = const <double>[],
     super.key,
   });
 
   final int dayNumber;
   final int totalDays;
   final double portfolioValue;
-  final double pnl;
   final double pnlPercent;
 
-  /// Non-null only after the Debrief lifts blind mode.
+  /// Non-null only when blind mode is off (a Custom Simulation, or after the
+  /// Debrief).
   final String? revealedAssetName;
 
-  /// Tints the rail and the masked plate to the run's current state — mint
-  /// nominal, amber while playing, red while halted. Defaults to the accent.
-  final Color? stateColor;
+  /// Tints the rail — cyan nominal, amber advanced, red halted.
+  final Color stateColor;
 
   /// Advanced mode only: share of the portfolio held in the asset. When
-  /// present it replaces the P&L chip with the canvas's exposure readout and
-  /// adds the position/cash split bar.
+  /// present it replaces the P&L chip with the exposure readout and adds the
+  /// position/cash split bar (artboard 1d).
   final double? exposure;
 
-  Color get _state => stateColor ?? AppColors.accent;
+  /// Artboard 1a: the taller plate, "ASSET CLASSIFIED · DATES SEALED", and
+  /// the day counter under the money.
+  final bool idle;
+
+  /// Artboard 1c: the figure and its chip turn red.
+  final bool halted;
+
+  /// Where on the rail the calls already made fell, as 0..1 fractions.
+  /// Past calls only — marking where future calls sit would tell the player
+  /// when the next test is coming.
+  final List<double> callMarks;
 
   @override
   Widget build(BuildContext context) {
-    final bool positive = pnl >= 0;
-    final Color pnlColor = positive ? AppColors.up : AppColors.down;
-    final double progress =
-        totalDays <= 1 ? 0 : (dayNumber - 1) / (totalDays - 1);
+    final bool positive = pnlPercent >= 0;
+    final double progress = totalDays <= 1
+        ? 0
+        : (dayNumber - 1) / (totalDays - 1);
 
-    // A large falling figure takes the softer red: full-strength #FF4D4D at
-    // 32pt reads as an error dialog rather than as a price.
-    final Color valueColor = positive
-        ? AppColors.textPrimary
-        : (pnlPercent <= -15 ? AppColors.downSoft : AppColors.textPrimary);
+    final Color valueColor = halted
+        ? AppColors.downSoft
+        : AppColors.textPrimary;
+    final Color chipColor = positive
+        ? AppColors.up
+        : (halted ? AppColors.down : AppColors.caution);
 
-    return Container(
+    final String dayLabel = 'DAY $dayNumber / $totalDays';
+
+    return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
-        AppSpacing.md - 2,
+        AppSpacing.md + 2,
         AppSpacing.md,
-        AppSpacing.sm + 2,
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: _state.withValues(alpha: 0.18)),
-        ),
+        AppSpacing.sm + 4,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,101 +94,120 @@ class BlindModeHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    _TickerPlate(name: revealedAssetName, stateColor: _state),
-                    const SizedBox(height: AppSpacing.xs + 2),
+                    FractionallySizedBox(
+                      widthFactor: idle ? 0.96 : 0.9,
+                      alignment: Alignment.centerLeft,
+                      child: _Identity(
+                        name: revealedAssetName,
+                        tall: idle,
+                        tint: halted ? AppColors.down : AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       // A relative counter, never a real date, in play.
-                      'DAY $dayNumber / $totalDays',
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.label(size: 10),
+                      idle ? 'ASSET CLASSIFIED · DATES SEALED' : dayLabel,
+                      maxLines: 2,
+                      style: AppText.label(size: 10.5, weight: FontWeight.w500),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              // Money, right.
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      formatRupees(portfolioValue),
-                      style: AppText.display(
-                        size: 32,
-                        weight: FontWeight.w700,
-                        color: valueColor,
-                        height: 1,
+              const SizedBox(width: AppSpacing.md),
+              // Money, right. Flexible, so a wide figure scales down rather
+              // than squeezing the redaction plate to nothing.
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        formatRupees(portfolioValue),
+                        style: AppText.display(
+                          size: 34,
+                          weight: FontWeight.w700,
+                          color: valueColor,
+                          height: 1.05,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  if (exposure == null)
-                    _PnlChip(
-                      pnlPercent: pnlPercent,
-                      color: pnlColor,
-                      positive: positive,
-                    )
-                  else
-                    RichText(
-                      text: TextSpan(
-                        children: <InlineSpan>[
-                          TextSpan(
-                            text: 'EXPOSURE ',
-                            style: AppText.label(size: 10),
-                          ),
-                          TextSpan(
-                            text: '${(exposure! * 100).round()}%',
-                            style: AppText.label(
-                              size: 10,
-                              color: AppColors.accent,
+                    const SizedBox(height: AppSpacing.xs + 2),
+                    if (idle)
+                      Text(dayLabel, style: AppText.label(size: 10.5))
+                    else if (exposure == null)
+                      _PnlChip(
+                        pnlPercent: pnlPercent,
+                        color: chipColor,
+                        positive: positive,
+                      )
+                    else
+                      Text.rich(
+                        TextSpan(
+                          children: <InlineSpan>[
+                            TextSpan(
+                              text: 'EXPOSURE ',
+                              style: AppText.label(size: 11),
                             ),
-                          ),
-                        ],
+                            TextSpan(
+                              text: '${(exposure! * 100).round()}%',
+                              style: AppText.label(
+                                size: 11,
+                                weight: FontWeight.w600,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.sm + 2),
-
-          // Replay progress: the one piece of "how far in am I" that blind
-          // mode allows, since it is relative and reveals no date. The canvas
-          // marks the playhead with a hairline tick above the fill.
-          _ProgressRail(progress: progress.clamp(0.0, 1.0), color: _state),
-
-          if (exposure != null) ...<Widget>[
-            const SizedBox(height: AppSpacing.sm),
-            _PositionBar(exposure: exposure!.clamp(0.0, 1.0)),
-          ],
-
-          const SizedBox(height: AppSpacing.sm),
-          // The virtual-capital framing, folded in under the rail so it is
-          // always on screen without costing its own row (CLAUDE.md makes it
-          // non-negotiable, but it does not have to be a banner).
-          Row(
-            children: <Widget>[
-              Icon(
-                Icons.shield_outlined,
-                size: 11,
-                color: AppColors.simulatedBadge.withValues(alpha: 0.9),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  'SIMULATED · ₹1,00,000 VIRTUAL CAPITAL',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.label(
-                    color: AppColors.simulatedBadge.withValues(alpha: 0.9),
-                    size: 9,
-                  ),
+                  ],
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Replay progress: the one piece of "how far in am I" blind mode
+          // allows, since it is relative and reveals no date.
+          _ProgressRail(
+            progress: progress.clamp(0.0, 1.0),
+            color: stateColor,
+            marks: callMarks,
+            showPlayhead: !idle,
+          ),
+
+          if (exposure != null) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm + 4),
+            _PositionBar(exposure: exposure!.clamp(0.0, 1.0)),
+          ],
+
+          const SizedBox(height: AppSpacing.sm + 2),
+          // The virtual-capital framing, folded under the rail so it is
+          // always on screen without costing a banner. CLAUDE.md makes the
+          // word SIMULATED non-negotiable during play.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text.rich(
+              TextSpan(
+                children: <InlineSpan>[
+                  TextSpan(
+                    text: 'SIMULATED',
+                    style: AppText.label(
+                      size: 10,
+                      weight: FontWeight.w600,
+                      color: AppColors.simulatedBadge,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' · VIRTUAL CAPITAL · NO REAL MONEY IS AT RISK',
+                    style: AppText.label(size: 10, color: AppColors.textFaint),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -188,21 +215,68 @@ class BlindModeHeader extends StatelessWidget {
   }
 }
 
-/// The rail, with a playhead tick. Hand-drawn rather than a
-/// LinearProgressIndicator because the tick has to sit *above* the bar.
+/// The redaction plate, or the instrument's name once blind mode is off.
+class _Identity extends StatelessWidget {
+  const _Identity({required this.name, required this.tall, required this.tint});
+
+  final String? name;
+  final bool tall;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    if (name == null) {
+      return RedactionPlate(
+        cells: tall ? 4 : 6,
+        height: tall ? 64 : 30,
+        tall: tall,
+        tint: tint,
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.accent.withValues(alpha: 0.1),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.6)),
+      ),
+      child: Text(
+        name!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppText.railLabel(
+          size: 15,
+          weight: FontWeight.w700,
+          color: AppColors.accent,
+          letterSpacing: 15 * 0.1,
+        ),
+      ),
+    );
+  }
+}
+
+/// The rail, with a playhead tick and amber marks where calls were made.
+/// Hand-drawn because the tick has to stand proud of the bar.
 class _ProgressRail extends StatelessWidget {
-  const _ProgressRail({required this.progress, required this.color});
+  const _ProgressRail({
+    required this.progress,
+    required this.color,
+    required this.marks,
+    required this.showPlayhead,
+  });
 
   final double progress;
   final Color color;
+  final List<double> marks;
+  final bool showPlayhead;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 3,
+      height: 4,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
-          final double x = c.maxWidth * progress;
+          // A sliver of fill even on day 1, so the rail reads as "started".
+          final double x = (c.maxWidth * progress).clamp(6.0, c.maxWidth);
           return Stack(
             clipBehavior: Clip.none,
             children: <Widget>[
@@ -216,15 +290,22 @@ class _ProgressRail extends StatelessWidget {
                 width: x,
                 child: ColoredBox(color: color),
               ),
-              // The playhead. 1px, taller than the rail, and the one place
-              // near-white appears in the HUD.
-              Positioned(
-                left: (x - 0.5).clamp(0.0, c.maxWidth - 1),
-                top: -4,
-                width: 1,
-                height: 11,
-                child: const ColoredBox(color: AppColors.textPrimary),
-              ),
+              for (final double m in marks)
+                Positioned(
+                  left: (c.maxWidth * m - 1).clamp(0.0, c.maxWidth - 2),
+                  top: -1,
+                  width: 3,
+                  height: 6,
+                  child: const ColoredBox(color: AppColors.caution),
+                ),
+              if (showPlayhead)
+                Positioned(
+                  left: (x - 1).clamp(0.0, c.maxWidth - 2),
+                  top: -6,
+                  width: 2,
+                  height: 16,
+                  child: const ColoredBox(color: AppColors.textPrimary),
+                ),
             ],
           );
         },
@@ -244,77 +325,41 @@ class _PositionBar extends StatelessWidget {
     final int held = (exposure * 100).round();
     return Row(
       children: <Widget>[
-        Text('POSITION', style: AppText.label(size: 9)),
+        Text('POSITION', style: AppText.label(size: 10.5)),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: SizedBox(
-            height: 8,
+            height: 12,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Expanded(
-                  flex: held.clamp(1, 100),
-                  child: ColoredBox(
-                    color: AppColors.accent.withValues(alpha: 0.5),
+                if (held > 0)
+                  Expanded(
+                    flex: held,
+                    child: ColoredBox(
+                      color: AppColors.accent.withValues(alpha: 0.55),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 2),
-                Expanded(
-                  flex: (100 - held).clamp(1, 100),
-                  child: ColoredBox(
-                    color: AppColors.accent.withValues(alpha: 0.1),
+                if (held > 0 && held < 100) const SizedBox(width: 3),
+                if (held < 100)
+                  Expanded(
+                    flex: 100 - held,
+                    child: ColoredBox(
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Text('CASH ${100 - held}%', style: AppText.label(size: 9)),
+        Text('CASH ${100 - held}%', style: AppText.label(size: 10.5)),
       ],
     );
   }
 }
 
-/// The masked symbol slot. Hatched while blind, named once revealed.
-class _TickerPlate extends StatelessWidget {
-  const _TickerPlate({this.name, required this.stateColor});
-
-  final String? name;
-  final Color stateColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool blind = name == null;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-      decoration: BoxDecoration(
-        color: blind ? null : stateColor.withValues(alpha: 0.14),
-        border: Border.all(
-          color: blind
-              ? AppColors.border
-              : stateColor.withValues(alpha: 0.7),
-        ),
-      ),
-      child: Text(
-        blind ? '████ ██' : name!,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppText.display(
-          size: 22,
-          weight: FontWeight.w700,
-          color: blind
-              ? AppColors.textSecondary.withValues(alpha: 0.45)
-              : stateColor,
-          letterSpacing: 22 * 0.14,
-        ),
-      ),
-    );
-  }
-}
-
-/// The bordered P&L chip. Square, and it carries the direction glyph the
-/// canvas uses rather than a plus/minus sign alone.
+/// The bordered P&L chip, with the direction glyph.
 class _PnlChip extends StatelessWidget {
   const _PnlChip({
     required this.pnlPercent,
@@ -329,15 +374,14 @@ class _PnlChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        border: Border.all(color: color.withValues(alpha: 0.6)),
+        color: color.withValues(alpha: 0.12),
+        border: Border.all(color: color.withValues(alpha: 0.7)),
       ),
       child: Text(
-        '${positive ? '▲' : '▼'} '
-        '${pnlPercent.abs().toStringAsFixed(1)}%',
-        style: AppText.mono(size: 11, weight: FontWeight.w600, color: color),
+        '${positive ? '▲' : '▼'} ${pnlPercent.abs().toStringAsFixed(1)}%',
+        style: AppText.mono(size: 13, weight: FontWeight.w600, color: color),
       ),
     );
   }

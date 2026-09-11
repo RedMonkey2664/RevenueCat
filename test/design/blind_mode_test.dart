@@ -41,7 +41,7 @@ void main() {
     final String visible = screenText();
 
     // The brief is present and useful.
-    expect(find.text('You are already invested.'), findsOneWidget);
+    expect(find.text('YOU ARE ALREADY INVESTED.'), findsOneWidget);
     expect(visible, contains('CALLS'));
     expect(visible, contains('SEVERITY'));
 

@@ -200,4 +200,17 @@ class ProgressNotifier extends Notifier<ProgressState> {
 
     await ref.read(progressServiceProvider).save(state);
   }
+
+  /// Adds a resolved Daily Pivot's Discipline Points to the shared total.
+  ///
+  /// Points only: they are an in-app score and can never become currency
+  /// (CLAUDE.md). The Pivot calls this once per resolved day.
+  Future<void> awardPivotPoints(int points) async {
+    if (points <= 0) return;
+    state = ProgressState(
+      levels: state.levels,
+      pivotBonusPoints: state.pivotBonusPoints + points,
+    );
+    await ref.read(progressServiceProvider).save(state);
+  }
 }

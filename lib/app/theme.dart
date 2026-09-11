@@ -2,88 +2,74 @@ import 'package:flutter/material.dart';
 
 /// Design tokens for Market Nerve.
 ///
-/// Retuned to the **tactical-ops HUD** direction from `Market Nerve HUD.dc.html`
-/// (12 artboards, Sep 2026). Its thesis, in the canvas's own words: *"everything
-/// is an instrument reading — mono numerics, hairline rails, corner ticks, a
-/// reticle that tracks the last bar, scanlines over glass."*
+/// The **tactical-ops HUD**, in its cyan revision (the wireframe set of Sep
+/// 2026, which supersedes the mint palette of `Market Nerve HUD.dc.html`). The
+/// structure is unchanged — "everything is an instrument reading: mono
+/// numerics, hairline rails, corner ticks, scanlines over glass" — only the
+/// palette and the two faces moved.
 ///
 /// Three colours carry state, and the discipline is that they never blur:
 ///
-///   * **mint** — system nominal. Accent, positive values, advanced mode.
-///   * **amber** — caution. A run in progress, the SIMULATED framing.
+///   * **cyan** — system nominal. Accent, positive values, the selected state.
+///   * **amber** — caution. Advanced mode, the SIMULATED framing, streaks.
 ///   * **red** — alarm. The decision moment and negative values, nothing else.
 ///
-/// Every token *name* here is unchanged from the previous cyan theme, so all
-/// forty-odd screens pick the new direction up without edits. Only the values
-/// and the two typefaces changed. New concepts the HUD introduced ([onAccent],
-/// [alarmBackground], [downSoft], [caution], [AppText.display]) are additions.
+/// Every token *name* is unchanged from the previous palettes, so the forty-odd
+/// screens pick the revision up without edits.
 ///
-/// Phone-first: every size is chosen for the 390 × 844 the artboards were drawn
-/// at, and checked against 375 × 667.
+/// Phone-first: every size is chosen for the 390 × 844 the wireframes were
+/// drawn at, and checked against 375 × 667.
 abstract final class AppColors {
-  /// The ground. Near-black, very slightly green — it is the glass the whole
-  /// HUD sits behind, and a neutral black made the mint read as a sticker
-  /// rather than as emitted light.
-  static const Color background = Color(0xFF06080A);
+  /// The ground. Near-black with a navy cast — the glass the HUD sits behind.
+  static const Color background = Color(0xFF0A0E13);
 
   /// The decision state's ground, warmed towards red.
   ///
-  /// A two-point shift nobody consciously notices and everybody feels: the
-  /// whole screen goes slightly warm the instant playback halts. Used only
-  /// while a pause point is live.
-  static const Color alarmBackground = Color(0xFF0A0607);
+  /// A small shift nobody consciously notices and everybody feels: the whole
+  /// screen goes warm the instant playback halts. Used only while a pause
+  /// point is live.
+  static const Color alarmBackground = Color(0xFF130A0C);
 
-  /// Raised surfaces. In the artboards these are not grey cards but faint mint
-  /// washes over the ground — a .06 and a .10 tint respectively. They are
-  /// pre-composited to opaque here because the system navigation bar and the
-  /// app bar cannot take a translucent fill.
-  static const Color surface = Color(0xFF0A1615);
-  static const Color surfaceRaised = Color(0xFF0C1F1D);
+  /// Raised surfaces. Barely lifted off the ground — the wireframes draw
+  /// panels with a rail, not with a fill.
+  static const Color surface = Color(0xFF0D1319);
+  static const Color surfaceRaised = Color(0xFF121A22);
 
   /// Panel wash for a card drawn *over* content, where translucency is right.
-  static const Color panelWash = Color(0x2446F2C8);
+  static const Color panelWash = Color(0x145BC8F5);
 
-  /// Hairline rails. Mint-tinted rather than grey, which is most of why the
-  /// interface reads as instrumentation instead of as a dark-mode app.
-  static const Color border = Color(0x2478FFE1);
-  static const Color borderStrong = Color(0x4778FFE1);
+  /// Hairline rails. Steel, cooler than the ground.
+  static const Color border = Color(0xFF1C2833);
+  static const Color borderStrong = Color(0xFF2B3A48);
 
-  static const Color textPrimary = Color(0xFFDFF5EF);
+  static const Color textPrimary = Color(0xFFE4EDF2);
+  static const Color textSecondary = Color(0xFF8A98A6);
+  static const Color textFaint = Color(0xFF56626E);
 
-  /// The secondary and faint steps are alpha, not opaque greys, so they sit
-  /// correctly on the ground *and* on a washed panel. The artboards use .5–.62
-  /// and .38–.45 of the same cool grey-green.
-  static const Color textSecondary = Color(0x9EBED7D2);
-  static const Color textFaint = Color(0x66BED7D2);
-
-  /// System nominal. The one electric accent, used sparingly.
-  static const Color accent = Color(0xFF46F2C8);
+  /// System nominal. The one electric accent.
+  static const Color accent = Color(0xFF5BC8F5);
 
   /// Muted accent for fills sitting behind the bright one.
-  static const Color accentSoft = Color(0x2446F2C8);
+  static const Color accentSoft = Color(0x295BC8F5);
 
-  /// Brightest mint, for a pressed or hovered accent only.
-  static const Color accentBright = Color(0xFF8DFADF);
+  /// Brightest cyan, for a pressed or hovered accent only.
+  static const Color accentBright = Color(0xFF8FDCFA);
 
-  /// Foreground for anything filled with [accent].
-  ///
-  /// Near-black with a green cast, not pure black — the canvas is specific
-  /// about this and it matters at label sizes, where pure black on mint
-  /// vibrates.
-  static const Color onAccent = Color(0xFF04100D);
+  /// Foreground for anything filled with [accent]. Near-black with a navy
+  /// cast; pure black on cyan vibrates at label sizes.
+  static const Color onAccent = Color(0xFF061019);
 
-  /// Direction of price. Note that [up] and [accent] are deliberately the same
-  /// mint: in this direction a gain *is* the nominal state. See the note in
-  /// DESIGN.md before separating them again.
-  static const Color up = Color(0xFF46F2C8);
-  static const Color down = Color(0xFFFF4D4D);
+  /// Direction of price. [up] and [accent] are deliberately the same cyan: in
+  /// this direction a gain *is* the nominal state.
+  static const Color up = accent;
+  static const Color down = Color(0xFFEF5350);
 
-  /// A softer red for large falling numerals, where full-strength red at 30pt
+  /// A softer red for large falling numerals, where full-strength red at 32pt
   /// reads as an error message rather than as a price.
-  static const Color downSoft = Color(0xFFFF8080);
+  static const Color downSoft = Color(0xFFF28B8B);
 
-  /// Caution. A run in progress, and the SIMULATED framing.
-  static const Color caution = Color(0xFFFFB02E);
+  /// Caution. Advanced mode, streaks, and the SIMULATED framing.
+  static const Color caution = Color(0xFFF5B041);
 
   /// Flash treatments at pause points (ENGINE.md §2).
   static const Color flashHard = down;
@@ -108,9 +94,9 @@ abstract final class AppSpacing {
 
 /// Corner radii.
 ///
-/// The HUD is square. Across twelve artboards the only radii used are 3px on a
-/// chip and 50% on a status dot — there is not one rounded card. Both names are
-/// kept so existing call sites compile, but [cardR] is now zero.
+/// The HUD is square. The only radii in the wireframes are 3px on a chip and
+/// 50% on a status dot or a level node. Both names are kept so existing call
+/// sites compile, but [cardR] is zero.
 abstract final class AppRadius {
   static const Radius chipR = Radius.circular(3);
   static const Radius cardR = Radius.zero;
@@ -130,11 +116,8 @@ abstract final class AppMotion {
   static const Duration normal = Duration(milliseconds: 240);
   static const Duration slow = Duration(milliseconds: 380);
 
-  /// Ambient loops — the scanline drift, the ARMED dot, the alarm breathing.
-  ///
-  /// Deliberately far slower than the interaction durations: this is texture
-  /// the eye should never catch moving. The artboards run these between 1.2s
-  /// and 4s.
+  /// Ambient loops — the ARMED dot, the feed sweep, the alarm breathing.
+  /// Far slower than interaction timing: texture the eye should never catch.
   static const Duration ambientFast = Duration(milliseconds: 1200);
   static const Duration ambient = Duration(milliseconds: 1600);
   static const Duration ambientSlow = Duration(milliseconds: 4000);
@@ -146,40 +129,48 @@ const double kMinTouchTarget = 44;
 
 /// Typography.
 ///
-/// Two bundled faces, no runtime fetching, so Android and iOS render numbers
-/// identically:
+/// Two bundled variable faces, no runtime fetching, so Android and iOS render
+/// numbers identically:
 ///
-///   * **Barlow Condensed** — [display] and [title]. Narrow, so a ₹1,00,000
-///     fits at 30pt where a normal-width face would not, and it takes very
-///     wide letter-spacing without falling apart. Every hero numeral and
-///     screen title.
-///   * **IBM Plex Mono** — [mono], [label] and [body]. All prose in this
-///     direction is monospace, which is the canvas's "everything is an
-///     instrument reading" taken literally.
+///   * **Inter** — [headline], [title], [railLabel], [label] and [body]. The
+///     wireframes set every label, heading and sentence in it, from 9pt
+///     tracked caps to the 44pt Daily Pivot question.
+///   * **JetBrains Mono** — [display] and [mono]. Money, clocks, readouts:
+///     anything that ticks, so digits never jitter.
 ///
-/// Letter-spacing is in logical pixels here, where the canvas specifies `em`,
-/// so the helpers derive it from the size rather than hard-coding a value that
-/// would only be right at one scale.
+/// Both files are variable fonts. Flutter does not reliably map `fontWeight`
+/// onto a variable font's `wght` axis on every platform, so each style also
+/// sets the axis explicitly — without it, bold can silently render regular.
+///
+/// Letter-spacing is derived from the size (the wireframes specify `em`), so
+/// a style stays right at every scale.
 abstract final class AppText {
-  static const String displayFamily = 'BarlowCondensed';
-  static const String monoFamily = 'IBMPlexMono';
+  static const String sansFamily = 'Inter';
+  static const String monoFamily = 'JetBrainsMono';
 
-  /// Body copy is monospace in this direction. Kept as a separate name because
-  /// it is a design decision, not a synonym — if long-form copy moves back to
-  /// a proportional face, this is the one line that changes.
-  static const String uiFamily = monoFamily;
+  /// Kept as names for the two roles rather than for the two files — if a
+  /// role changes face, this is the line that moves.
+  static const String displayFamily = monoFamily;
+  static const String uiFamily = sansFamily;
 
-  /// Digits must not jitter as the replay ticks. Barlow Condensed is
-  /// proportional, so tabular figures are requested explicitly rather than
-  /// assumed.
+  /// A glyph a face lacks falls back to the other bundled face rather
+  /// than to whatever the platform picks: JetBrains Mono has no rupee
+  /// sign, Inter has no multiplication cross.
+  static const List<String> _monoFallback = <String>[sansFamily];
+  static const List<String> _sansFallback = <String>[monoFamily];
+
   static const List<FontFeature> _tabular = <FontFeature>[
     FontFeature.tabularFigures(),
   ];
 
-  /// Hero numerals — portfolio value, Discipline Score, the crowd split.
+  static List<FontVariation> _weight(FontWeight w) => <FontVariation>[
+    FontVariation.weight(w.value.toDouble()),
+  ];
+
+  /// Hero figures that tick — portfolio value, countdowns, points.
   ///
-  /// Barlow Condensed, tight tracking. This is the app's signature: where a
-  /// figure is the point of a screen, it is set big, condensed and tabular.
+  /// JetBrains Mono, bold, untracked: a monospaced rupee figure reads as an
+  /// instrument, and it cannot shift width as the replay ticks.
   static TextStyle display({
     double size = 30,
     FontWeight weight = FontWeight.w700,
@@ -188,24 +179,41 @@ abstract final class AppText {
     double? height,
   }) {
     return TextStyle(
-      fontFamily: displayFamily,
+      fontFamily: monoFamily,
+      fontFamilyFallback: _monoFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
-      // None. Across every artboard the hero numerals set no tracking at
-      // all; condensed digits already read as a column.
-      letterSpacing: letterSpacing ?? 0,
+      letterSpacing: letterSpacing ?? -size * 0.01,
       height: height,
       fontFeatures: _tabular,
     );
   }
 
-  /// Headlines and hero labels — Barlow Condensed, modest tracking.
-  ///
-  /// Sentence-safe on purpose. The canvas sets Barlow Condensed at 0.14–0.24em
-  /// but *only ever on uppercase labels and numerals* — there is not one
-  /// sentence in it at that tracking, and 0.22em on "You are already invested."
-  /// is unreadable. The wide uppercase treatment is [railLabel].
+  /// Big sans headlines and verdict numerals — "YOU ARE ALREADY INVESTED.",
+  /// the Discipline Score, the crowd split, "THE DEEP HOLDER".
+  static TextStyle headline({
+    double size = 28,
+    FontWeight weight = FontWeight.w800,
+    Color color = AppColors.textPrimary,
+    double? letterSpacing,
+    double? height = 1.08,
+  }) {
+    return TextStyle(
+      fontFamily: sansFamily,
+      fontFamilyFallback: _sansFallback,
+      fontSize: size,
+      fontWeight: weight,
+      fontVariations: _weight(weight),
+      color: color,
+      letterSpacing: letterSpacing ?? size * 0.02,
+      height: height,
+      fontFeatures: _tabular,
+    );
+  }
+
+  /// Headings and hero labels. Sentence-safe tracking.
   static TextStyle title({
     double size = 22,
     Color color = AppColors.textPrimary,
@@ -213,38 +221,39 @@ abstract final class AppText {
     double? letterSpacing,
   }) {
     return TextStyle(
-      fontFamily: displayFamily,
+      fontFamily: sansFamily,
+      fontFamilyFallback: _sansFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
-      // 0.06em, matching the canvas's own large-label tracking.
-      letterSpacing: letterSpacing ?? size * 0.06,
-      height: 1.1,
+      letterSpacing: letterSpacing ?? size * 0.04,
+      height: 1.15,
     );
   }
 
-  /// The wide uppercase rail label — app-bar titles, section headers.
-  ///
-  /// The canvas's signature chrome: Barlow Condensed, 13–15px, w600, and
-  /// tracking wide enough (0.22em) that two words read as instrumentation
-  /// rather than as a heading. Always given uppercase text by the caller.
+  /// The wide uppercase rail label — app-bar titles, section headers, the
+  /// three decision rows. Tracking wide enough (0.2em) that two words read as
+  /// instrumentation rather than as a heading. Callers pass uppercase text.
   static TextStyle railLabel({
     double size = 13,
     Color color = AppColors.accent,
-    FontWeight weight = FontWeight.w600,
+    FontWeight weight = FontWeight.w700,
     double? letterSpacing,
   }) {
     return TextStyle(
-      fontFamily: displayFamily,
+      fontFamily: sansFamily,
+      fontFamilyFallback: _sansFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
-      letterSpacing: letterSpacing ?? size * 0.22,
+      letterSpacing: letterSpacing ?? size * 0.2,
       height: 1.2,
     );
   }
 
-  /// Numbers in running text — prices, readouts, timestamps.
+  /// Numbers in running text — prices, readouts, level codes.
   static TextStyle mono({
     double size = 13,
     FontWeight weight = FontWeight.w500,
@@ -254,8 +263,10 @@ abstract final class AppText {
   }) {
     return TextStyle(
       fontFamily: monoFamily,
+      fontFamilyFallback: _monoFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
       letterSpacing: letterSpacing,
       height: height,
@@ -263,52 +274,51 @@ abstract final class AppText {
     );
   }
 
-  /// Narrative copy. Monospace in this direction — see [uiFamily].
+  /// Narrative copy.
   static TextStyle body({
     double size = 13,
     FontWeight weight = FontWeight.w400,
     Color color = AppColors.textPrimary,
-    double height = 1.6,
+    double height = 1.55,
     double letterSpacing = 0,
   }) {
     return TextStyle(
-      fontFamily: uiFamily,
+      fontFamily: sansFamily,
+      fontFamilyFallback: _sansFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
       height: height,
       letterSpacing: letterSpacing,
     );
   }
 
-  /// The micro-readout — "DAY 14 / 130", "ASSET CLASSIFIED", "ARMED".
+  /// The micro-readout — "DAY 14 / 130", "ASSET CLASSIFIED", "STREAK".
   ///
-  /// The most-used style in the artboards by a wide margin: 9–10px monospace
-  /// with generous tracking. Distinct from [title], which is the larger
-  /// condensed label.
+  /// The most-used style in the wireframes by a wide margin: small tracked
+  /// caps. Callers pass uppercase text.
   static TextStyle label({
     Color color = AppColors.textSecondary,
-    double size = 9.5,
+    double size = 10,
     FontWeight weight = FontWeight.w500,
     double? letterSpacing,
   }) {
     return TextStyle(
-      fontFamily: monoFamily,
+      fontFamily: sansFamily,
+      fontFamilyFallback: _sansFallback,
       fontSize: size,
       fontWeight: weight,
+      fontVariations: _weight(weight),
       color: color,
       // 0.16em.
       letterSpacing: letterSpacing ?? size * 0.16,
+      fontFeatures: _tabular,
     );
   }
 }
 
-/// A HUD panel: a faint mint wash behind a hairline rail, square-cornered.
-///
-/// Replaces the previous lit-from-above gradient card. The artboards have no
-/// rounded corners and no vertical gradient — depth comes from the wash and
-/// the rail, which is what keeps the surface reading as glass rather than as
-/// a raised object.
+/// A HUD panel: a barely-lifted fill behind a hairline rail, square-cornered.
 BoxDecoration cardDecoration({
   Color? borderColor,
   BorderRadius radius = AppRadius.card,
@@ -322,9 +332,6 @@ BoxDecoration cardDecoration({
 }
 
 /// An emphasised panel in one of the three state colours.
-///
-/// The alarm variant is what the decision panel is built from; caution marks a
-/// run in progress, nominal marks a resolved or positive state.
 BoxDecoration statePanelDecoration(
   Color stateColor, {
   double fillOpacity = 0.10,
@@ -366,10 +373,10 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      centerTitle: false,
+      centerTitle: true,
       // The app bar carries a rail, not a shadow.
       shape: const Border(bottom: BorderSide(color: AppColors.border)),
-      titleTextStyle: AppText.railLabel(),
+      titleTextStyle: AppText.railLabel(size: 15),
       iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 22),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
@@ -387,6 +394,11 @@ ThemeData buildAppTheme() {
       contentTextStyle: AppText.body(size: 12),
       behavior: SnackBarBehavior.floating,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.chip),
+    ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: AppColors.accent,
+      selectionColor: AppColors.accentSoft,
+      selectionHandleColor: AppColors.accent,
     ),
   );
 }

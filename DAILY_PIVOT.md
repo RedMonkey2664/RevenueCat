@@ -65,3 +65,24 @@ question archive UI, no leaderboard) for MVP.
 - No multi-asset questions, no streak-based question difficulty, no leaderboard
   across users, no push (server-triggered) notifications, no historical
   question/answer archive screen.
+
+## As built (Sep 2026, following the wireframes)
+
+Where this section and the text above disagree, this section describes the
+app; the wireframes were treated as the newer spec.
+
+- **Question:** "Will BTC close above $X today?" — the strike is BTC/USDT at
+  09:00 IST (the open of Binance's 09:00 one-minute bar), resolved against
+  the 17:00 IST price (the close of the 16:59 bar). Dollars, because that is
+  what the source quotes; every price names Binance as its source.
+- **Crowd:** hidden until 17:00 ("CROWD LOCKED AT 17:00"), revealed at poll
+  close. A split is shown only for an aggregate of at least 250 votes; below
+  that the low-vote variant appears in its place. The backend is still a
+  local placeholder (see ARCHITECTURE.md), so today that is always the case.
+- **Scoring:** correct = 10 Discipline Points; correct *and* against a
+  readable majority = 24 (2.4×); wrong = 0, never a penalty. A streak of 7
+  consecutive resolved days multiplies by 1.5. Points only — never money.
+- **One vote, sealed:** a confirmation step, then no changes.
+- **Not built:** the 9:00 and 17:00 local notifications (the tab shows a red
+  dot instead when today's question is open or its outcome is unseen), the
+  Firestore backend, and the two Cloud Functions.

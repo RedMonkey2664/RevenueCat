@@ -47,7 +47,7 @@ class CampaignPath extends StatelessWidget {
   /// flex column and draws the path *behind* them at approximate coordinates,
   /// so 130 was never a spacing anyone had to honour. Using it literally made
   /// every label collide with the circle below it.
-  static const double _labelBlock = 58;
+  static const double _labelBlock = 72;
   static const double _slotGap = 20;
   static const double _spacing =
       _PathNode.maxDiameter + _labelBlock + _slotGap;
@@ -395,9 +395,11 @@ class _PathNodeState extends State<_PathNode>
           const SizedBox(height: AppSpacing.sm),
           Text(
             widget.entry.maskedTitle,
-            style: AppText.label(
-              size: 10,
+            style: AppText.mono(
+              size: 12.5,
+              weight: FontWeight.w500,
               color: skin.top.withValues(alpha: skin.opacity),
+              letterSpacing: 12.5 * 0.22,
             ),
           ),
           const SizedBox(height: 2),
@@ -408,7 +410,7 @@ class _PathNodeState extends State<_PathNode>
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppText.title(size: 14),
+              style: AppText.headline(size: 17, letterSpacing: 17 * 0.02),
             )
           else
             // A bare row of block glyphs at title size read as a broken
@@ -429,10 +431,11 @@ class _PathNodeState extends State<_PathNode>
       case _NodeState.cleared:
         return Text(
           '${widget.levelProgress?.bestScore ?? '—'}',
-          style: AppText.display(
-            size: 34,
+          style: AppText.headline(
+            size: 38,
             weight: FontWeight.w800,
             color: Colors.white,
+            letterSpacing: 0,
           ),
         );
       case _NodeState.current:
@@ -448,10 +451,11 @@ class _PathNodeState extends State<_PathNode>
       case _NodeState.available:
         return Text(
           widget.entry.indexInMarket.toString().padLeft(2, '0'),
-          style: AppText.display(
-            size: 28,
+          style: AppText.headline(
+            size: 30,
             weight: FontWeight.w800,
             color: Colors.white.withValues(alpha: 0.85),
+            letterSpacing: 0,
           ),
         );
       case _NodeState.locked:
@@ -478,7 +482,7 @@ class _PathNodeState extends State<_PathNode>
             for (int i = 0; i < 3; i++)
               Icon(
                 i < _stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                size: 14,
+                size: 19,
                 color: const Color(0xFFF4D03F),
               ),
           ],
@@ -589,7 +593,11 @@ class _MaskedName extends StatelessWidget {
     if (state == _NodeState.current) {
       return Text(
         'CLASSIFIED',
-        style: AppText.title(size: 14, color: AppColors.textSecondary),
+        style: AppText.headline(
+          size: 16,
+          color: AppColors.textSecondary,
+          letterSpacing: 16 * 0.12,
+        ),
       );
     }
 

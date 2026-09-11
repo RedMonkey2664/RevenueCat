@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/phone_frame.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
+import 'app/widgets/hud.dart';
 import 'core/services/progress_service.dart';
 
 Future<void> main() async {
@@ -45,9 +46,11 @@ class MarketNerveApp extends StatelessWidget {
       title: 'Market Nerve',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      // Wraps the navigator, so pushed routes and dialogs are framed too.
-      builder: (BuildContext context, Widget? child) =>
-          PhoneFrame(child: child ?? const SizedBox.shrink()),
+      // Wraps the navigator, so pushed routes and dialogs are framed too —
+      // and so the scanline glass sits over every one of them.
+      builder: (BuildContext context, Widget? child) => PhoneFrame(
+        child: Scanlines(child: child ?? const SizedBox.shrink()),
+      ),
       home: const AppRoot(),
     );
   }

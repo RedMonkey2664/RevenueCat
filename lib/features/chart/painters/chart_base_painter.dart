@@ -34,6 +34,8 @@ class ChartBasePainter extends CustomPainter {
     this.selectedDrawingId,
     this.replayCursorIndex,
     this.showLastPriceLine = true,
+    this.showAxes = true,
+    this.referenceLine,
   });
 
   /// The real series — drawings and the last-price tag resolve against this,
@@ -62,6 +64,12 @@ class ChartBasePainter extends CustomPainter {
 
   final bool showLastPriceLine;
 
+  /// False for a compact chart with no gutter and no time axis.
+  final bool showAxes;
+
+  /// A host-supplied fixed price line (the Pivot's strike).
+  final ChartReferenceLine? referenceLine;
+
   @override
   void paint(Canvas canvas, Size size) {
     if (drawBars.isEmpty) return;
@@ -76,8 +84,10 @@ class ChartBasePainter extends CustomPainter {
           timeTicks);
     }
 
-    _paintPriceGutter(canvas, priceTicks);
-    _paintTimeAxis(canvas, timeTicks);
+    if (showAxes) {
+      _paintPriceGutter(canvas, priceTicks);
+      _paintTimeAxis(canvas, timeTicks);
+    }
   }
 
   // ---------------------------------------------------------------- price
@@ -103,6 +113,7 @@ class ChartBasePainter extends CustomPainter {
     _paintOverlayLines(canvas);
     _paintReplayCursor(canvas);
     _paintDrawings(canvas);
+    _paintReferenceLine(canvas);
 
     canvas.restore();
 
@@ -164,14 +175,24 @@ class ChartBasePainter extends CustomPainter {
       final double yClose = priceGeometry.yForPrice(c.close);
 
       final Path wicks = c.isUp ? upWicks : downWicks;
-      wicks
-        ..moveTo(x, yHigh)
-        ..lineTo(x, yLow);
-
-      if (!bodiesVisible) continue;
-
       final double top = math.min(yOpen, yClose);
       final double bottom = math.max(yOpen, yClose);
+
+      if (!bodiesVisible) {
+        wicks
+          ..moveTo(x, yHigh)
+          ..lineTo(x, yLow);
+        continue;
+      }
+
+      // The wick stops at the body rather than running through it, so a
+      // hollow up-candle stays hollow on any background.
+      wicks
+        ..moveTo(x, yHigh)
+        ..lineTo(x, top)
+        ..moveTo(x, math.max(bottom, top + 1))
+        ..lineTo(x, yLow);
+
       final Path bodies = c.isUp ? upBodies : downBodies;
       bodies.addRect(
         Rect.fromLTRB(
@@ -193,11 +214,18 @@ class ChartBasePainter extends CustomPainter {
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
+    // Hollow up, solid down — the wireframes' candle. A rising bar is an
+    // outline and a falling one is filled, so a crash reads heavier than the
+    // rallies inside it, which is the asymmetry a crash replay is about.
     canvas
       ..drawPath(upWicks, upStroke)
       ..drawPath(downWicks, downStroke)
-      ..drawPath(upBodies, Paint()..color = AppColors.up)
-      ..drawPath(downBodies, Paint()..color = AppColors.down);
+      ..drawPath(upBodies, upStroke)
+      ..drawPath(
+        downBodies,
+        Paint()..color = AppColors.down.withValues(alpha: 0.82),
+      )
+      ..drawPath(downBodies, downStroke);
   }
 
   void _paintPricePath(Canvas canvas) {
@@ -385,6 +413,7 @@ class ChartBasePainter extends CustomPainter {
         ..style = PaintingStyle.stroke,
     );
 
+    if (layout.gutterWidth <= 0) return;
     _paintGutterTag(
       canvas,
       y: y,
@@ -392,6 +421,41 @@ class ChartBasePainter extends CustomPainter {
       background: color,
       foreground: AppColors.background,
     );
+  }
+
+  void _paintReferenceLine(Canvas canvas) {
+    final ChartReferenceLine? line = referenceLine;
+    if (line == null) return;
+    final Rect plot = priceGeometry.plot;
+    final double y = priceGeometry.yForPrice(line.price);
+    if (y < plot.top || y > plot.bottom) return;
+
+    canvas.drawPath(
+      _dash(
+        Path()
+          ..moveTo(plot.left, y)
+          ..lineTo(plot.right, y),
+        dash: 6,
+        gap: 5,
+      ),
+      Paint()
+        ..color = line.color.withValues(alpha: 0.85)
+        ..strokeWidth = 1.2
+        ..style = PaintingStyle.stroke,
+    );
+
+    final TextPainter tp = _layoutText(
+      line.label,
+      AppText.label(size: 10, weight: FontWeight.w600, color: line.color),
+    );
+    // Above the line at the right-hand end, unless that would leave the plot.
+    final double top = y - tp.height - 4 < plot.top ? y + 4 : y - tp.height - 4;
+    final Offset at = Offset(plot.right - tp.width - 4, top);
+    canvas.drawRect(
+      Rect.fromLTWH(at.dx - 3, at.dy - 1, tp.width + 6, tp.height + 2),
+      Paint()..color = AppColors.background.withValues(alpha: 0.85),
+    );
+    tp.paint(canvas, at);
   }
 
   // ------------------------------------------------------------ sub-panes
@@ -780,6 +844,8 @@ class ChartBasePainter extends CustomPainter {
         old.pendingDrawing != pendingDrawing ||
         old.selectedDrawingId != selectedDrawingId ||
         old.replayCursorIndex != replayCursorIndex ||
+        old.showAxes != showAxes ||
+        old.referenceLine != referenceLine ||
         old.paneGeometries.length != paneGeometries.length;
   }
 }

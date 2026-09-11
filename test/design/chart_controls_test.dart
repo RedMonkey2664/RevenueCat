@@ -89,7 +89,7 @@ void main() {
       ChartType.candles,
     );
 
-    await tester.tap(find.byIcon(Icons.candlestick_chart));
+    await tester.tap(find.byTooltip('Chart type'));
     await settle(tester);
 
     expect(find.text('CHART TYPE'), findsOneWidget);
@@ -118,7 +118,7 @@ void main() {
       isEmpty,
     );
 
-    await tester.tap(find.byIcon(Icons.functions));
+    await tester.tap(find.byTooltip('Indicators'));
     await settle(tester);
 
     expect(find.text('INDICATORS'), findsOneWidget);
@@ -145,13 +145,13 @@ void main() {
   ) async {
     await pumpLevel(tester);
 
-    for (final (IconData icon, ChartTool expected) in <(IconData, ChartTool)>[
-      (Icons.timeline, ChartTool.trendline),
-      (Icons.horizontal_rule, ChartTool.horizontalLine),
-      (Icons.crop_square, ChartTool.rectangle),
-      (Icons.near_me_outlined, ChartTool.cursor),
+    for (final ChartTool expected in <ChartTool>[
+      ChartTool.trendline,
+      ChartTool.horizontalLine,
+      ChartTool.rectangle,
+      ChartTool.cursor,
     ]) {
-      await tester.tap(find.byIcon(icon));
+      await tester.tap(find.byTooltip(expected.label));
       await tester.pump();
       expect(
         tester.widget<ProChart>(find.byType(ProChart)).settings.tool,

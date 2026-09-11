@@ -103,11 +103,17 @@ class RecordedDecision {
     required this.pausePoint,
     required this.chosen,
     required this.portfolioValueAtDecision,
+    this.timeToDecide,
   });
 
   final PausePoint pausePoint;
   final DecisionAction chosen;
   final double portfolioValueAtDecision;
+
+  /// How long the player looked at the halted tape before choosing. Read by
+  /// the Nerve Profile's decision-speed trait; null where it was not
+  /// measured.
+  final Duration? timeToDecide;
 
   bool get wasOptimal => chosen == pausePoint.optimalAction;
 }

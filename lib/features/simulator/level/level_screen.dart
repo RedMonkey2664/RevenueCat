@@ -1,7 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/formatting.dart';
 import '../../../app/theme.dart';
+import '../../../app/widgets/hud.dart';
 import '../../../app/widgets/simulated_badge.dart';
 import '../../../core/market/candle.dart';
 import '../../chart/model/chart_labels.dart';
@@ -23,8 +28,13 @@ import 'widgets/trade_panel.dart';
 /// The core screen: chart + blind-mode chrome + decision panel at pause points.
 ///
 /// It receives a [SimulationLevel] and hands it to the engine through a scoped
-/// override, so the same screen serves campaign levels and Endless windows
-/// without branching on which it is.
+/// override, so the same screen serves campaign levels, Endless windows and
+/// Custom Simulations without branching on which it is.
+///
+/// Artboards 1a–1d are four states of the same six regions — top bar, header,
+/// chart, controls, a deliberate void, and the bottom panel. Only the state
+/// colour and the bottom panel change; when something needs room, the chart
+/// is the region that yields.
 class LevelScreen extends StatelessWidget {
   const LevelScreen({required this.level, required this.mode, super.key});
 
@@ -65,11 +75,15 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
     BarInterval.mo1,
   ];
 
+  /// Fixed heights of the control strips, so the chart/void split below can
+  /// be worked out before layout rather than discovered by overflow.
+  static const double _toolbarBand = 48 + AppSpacing.md;
+  static const double _transportBand = 52 + AppSpacing.md;
+
   ChartSettings _settingsFor(bool blind) {
-    final ChartSettings base = _settings ??=
-        ref.read(chartPreferencesProvider).loadSettings(
-              defaultInterval: BarInterval.d1,
-            );
+    final ChartSettings base = _settings ??= ref
+        .read(chartPreferencesProvider)
+        .loadSettings(defaultInterval: BarInterval.d1);
 
     // Blind mode pins the scale to percent so the gridlines land on round
     // moves. This is presentation only -- what actually keeps absolute prices
@@ -83,201 +97,535 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
     ref.read(chartPreferencesProvider).saveSettings(next);
   }
 
+  void _openDebrief(ReplayController controller) {
+    controller.reveal();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            DebriefScreen(state: ref.read(replayControllerProvider)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReplayState state = ref.watch(replayControllerProvider);
-    final ReplayController controller =
-        ref.read(replayControllerProvider.notifier);
+    final ReplayController controller = ref.read(
+      replayControllerProvider.notifier,
+    );
 
     final bool blind = !state.isRevealed;
     final ChartSettings settings = _settingsFor(blind);
-    final List<Candle> visible = state.visibleCandles;
     final ChartLabels labels = blind
         ? BlindChartLabels(baselinePrice: state.level.candles.first.close)
         : const RealChartLabels();
 
-    // The run's state drives one colour through the whole screen: the app bar
-    // label, the header rail, the masked plate, the chart frame and the chart
-    // line. Artboards 1a-1d differ in almost nothing else.
-    //
-    //   halted   -> red    (alarm; the one screen that gets it)
-    //   advanced -> amber  (caution; free trading, no safety net)
-    //   playing  -> amber  (caution; a run in progress)
-    //   idle     -> mint   (nominal)
-    final _RunState runState = _RunState.of(state);
-    final Color stateColor = runState.color;
+    final _RunState run = _RunState.of(state);
+    final Color stateColor = run.color;
+    final int lastIndex = math.max(1, state.level.length - 1);
 
-    return Scaffold(
-      // The alarm warms the whole ground, not just the panel. Two points of
-      // red in the background is a shift nobody reads consciously and
-      // everybody feels the moment playback halts.
-      backgroundColor: runState.isHalted
-          ? AppColors.alarmBackground
-          : AppColors.background,
-      appBar: AppBar(
-        title: Text(runState.label, style: AppText.railLabel(color: stateColor)),
-        shape: Border(bottom: BorderSide(color: stateColor.withValues(alpha: 0.24))),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () {
-            controller.pause();
-            Navigator.of(context).maybePop();
-          },
+    final Widget body = Column(
+      children: <Widget>[
+        if (state.level.isSyntheticSample) const SyntheticDataBadge(),
+        BlindModeHeader(
+          dayNumber: state.dayNumber,
+          totalDays: state.totalDays,
+          portfolioValue: state.portfolioValue,
+          pnlPercent: state.pnlPercent,
+          revealedAssetName: state.isRevealed
+              ? state.level.realAssetName
+              : null,
+          stateColor: stateColor,
+          // Advanced mode swaps the P&L chip for the exposure readout and
+          // gains the position/cash split bar (artboard 1d).
+          exposure: state.mode.isAdvanced && run != _RunState.idle
+              ? state.exposure
+              : null,
+          idle: run == _RunState.idle,
+          halted: run.isHalted,
+          callMarks: <double>[
+            for (final d in state.decisions)
+              d.pausePoint.triggerIndex / lastIndex,
+          ],
         ),
-        actions: <Widget>[
-          _StatusPip(runState: runState),
-          const SizedBox(width: AppSpacing.md),
-        ],
-      ),
-      body: Column(
-        children: <Widget>[
-          if (state.level.isSyntheticSample) const SyntheticDataBadge(),
-          BlindModeHeader(
-            dayNumber: state.dayNumber,
-            totalDays: state.totalDays,
-            portfolioValue: state.portfolioValue,
-            pnl: state.pnl,
-            pnlPercent: state.pnlPercent,
-            revealedAssetName:
-                state.isRevealed ? state.level.realAssetName : null,
-            stateColor: stateColor,
-            // Advanced mode swaps the P&L chip for the exposure readout and
-            // gains the position/cash split bar (artboard 1d).
-            exposure: state.mode.isAdvanced ? state.exposure : null,
-          ),
+        if (run == _RunState.idle)
           Expanded(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: Stack(
-                    children: <Widget>[
-                      // The chart sits in a ruled frame, as it does in every
-                      // artboard. Kept flexible rather than the canvas's fixed
-                      // 236/250pt: on 390x844 the result is the same, and on a
-                      // 667pt phone a hard height would overflow. That also
-                      // matches the canvas's own stated rule for 1d - the
-                      // chart is the region that yields.
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.md,
-                          AppSpacing.xs,
-                          AppSpacing.md,
-                          AppSpacing.xs,
-                        ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: stateColor.withValues(alpha: 0.22),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.xs,
-                              AppSpacing.lg + 4,
-                              AppSpacing.xs,
-                              AppSpacing.xs,
-                            ),
-                            child: ProChart(
-                          bars: visible,
-                          baseInterval: BarInterval.d1,
-                          settings: settings,
-                          labels: labels,
-                          // Keeps the newest candle in view as the replay
-                          // advances, unless the player has panned away to
-                          // look at something.
-                          autoFollow: true,
-                          replayCursorIndex: visible.length - 1,
-                          percentBaseline: state.level.candles.first.close,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: AppSpacing.md + AppSpacing.sm,
-                        top: AppSpacing.sm + 2,
-                        right: AppSpacing.md,
-                        child: IgnorePointer(
-                          child: OhlcLegend(
-                            bar: visible.isEmpty ? null : visible.last,
-                            previous: visible.length > 1
-                                ? visible[visible.length - 2]
-                                : null,
-                            labels: labels,
-                            indicatorLegend: <String>[
-                              for (final IndicatorSpec i in settings.indicators)
-                                i.label,
-                            ],
-                          ),
-                        ),
-                      ),
-                      PauseFlashOverlay(
-                        treatment: state.activePausePoint?.flashTreatment,
-                      ),
-                      if (state.status == ReplayStatus.idle)
-                        _StartOverlay(
-                          mode: state.mode,
-                          brief: LevelBrief.of(state.level),
-                          onStart: controller.play,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
+            child: _IdleStage(
+              feed: _AwaitingFeed(bars: state.totalDays),
+              brief: _PreRunBrief(
+                mode: state.mode,
+                brief: LevelBrief.of(state.level),
+                drawdowns: state.drawdownEpisodes.length,
+                color: stateColor,
+                onStart: controller.play,
+              ),
+            ),
+          )
+        else ...<Widget>[
+          Expanded(
+            child: _Stage(
+              chart: _ChartFrame(
+                state: state,
+                settings: settings,
+                labels: labels,
+                halted: run.isHalted,
+              ),
+              toolbar: run.isHalted
+                  ? null
+                  : ChartToolbar(
+                      settings: settings,
+                      onChanged: _applySettings,
+                      availableIntervals: _intervals,
+                      showScaleToggle: !blind,
+                      singleRow: true,
+                    ),
+              transport: run.isHalted || state.isFinished
+                  ? null
+                  : _TransportBar(
+                      state: state,
+                      controller: controller,
+                      color: stateColor,
+                    ),
+              fillChart: state.isFinished,
+              toolbarBand: _toolbarBand,
+              transportBand: _transportBand,
             ),
           ),
-          // Hidden until the run starts. Before that the pre-run brief covers
-          // the chart, so the toolbar controls something the player cannot
-          // reach — and on a 375x667 phone its 76pt pushed the START RUN
-          // button below the fold of the brief's scroll view.
-          if (state.status != ReplayStatus.idle)
-            ChartToolbar(
-              settings: settings,
-              onChanged: _applySettings,
-              availableIntervals: _intervals,
-              showScaleToggle: !blind,
-            ),
-          _TransportBar(state: state, controller: controller),
           // The panel takes real estate from the chart rather than floating
-          // over it. Overlaying looked tidier but hid the bottom of the
-          // drawdown behind the panel — the player could not see the low they
-          // were being asked to react to. The panel is kept compact instead,
-          // so the chart above it stays legible.
+          // over it, so the low the player is reacting to stays visible.
           if (state.isAwaitingDecision)
-            DecisionPanel(
-              portfolioValue: state.portfolioValue,
-              pnlPercent: state.pnlPercent,
-              onDecision: controller.submitDecision,
-            )
-          else if (state.mode.isAdvanced && !state.isFinished)
+            DecisionPanel(onDecision: controller.submitDecision)
+          else if (state.isFinished)
+            _RunCompleteBar(onDebrief: () => _openDebrief(controller))
+          else if (state.mode.isAdvanced)
             TradePanel(
               cash: state.portfolio.cash,
               exposure: state.exposure,
               onBuy: controller.buy,
               onSell: controller.sell,
             )
-          else if (state.isFinished)
-            _RunCompleteBar(
-              onDebrief: () {
-                controller.reveal();
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => DebriefScreen(
-                      state: ref.read(replayControllerProvider),
+          else
+            _StatusFooter(paused: state.status == ReplayStatus.paused),
+        ],
+      ],
+    );
+
+    return Scaffold(
+      // The alarm warms the whole ground, not just the panel.
+      backgroundColor: run.isHalted
+          ? AppColors.alarmBackground
+          : AppColors.background,
+      appBar: HudTopBar(
+        title: run.title(state),
+        titleColor: stateColor,
+        railColor: run.isHalted
+            ? AppColors.down.withValues(alpha: 0.35)
+            : AppColors.border,
+        leading: IconButton(
+          tooltip: 'Leave run',
+          icon: Icon(
+            Icons.close,
+            color: run.isHalted
+                ? AppColors.down.withValues(alpha: 0.8)
+                : AppColors.textSecondary,
+          ),
+          onPressed: () {
+            controller.pause();
+            Navigator.of(context).maybePop();
+          },
+        ),
+        trailing: run.pip,
+      ),
+      // Halted, the whole screen is ruled in red — the one moment in the app
+      // that gets the alarm treatment edge to edge.
+      body: run.isHalted
+          ? DecoratedBox(
+              position: DecorationPosition.foreground,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.down.withValues(alpha: 0.45),
+                ),
+              ),
+              child: body,
+            )
+          : body,
+    );
+  }
+}
+
+/// Artboard 1a's lower two-thirds: the viewfinder takes whatever the brief
+/// leaves, but never less than [_minFeed]. On a short phone the whole stage
+/// scrolls instead, so START RUN can never be pushed off-screen or clipped.
+class _IdleStage extends StatelessWidget {
+  const _IdleStage({required this.feed, required this.brief});
+
+  final Widget feed;
+  final Widget brief;
+
+  static const double _minFeed = 140;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints box) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: box.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: _minFeed),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        child: feed,
+                      ),
                     ),
                   ),
-                );
-              },
+                  brief,
+                ],
+              ),
             ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The middle band: chart, then the control strips, then the deliberate void.
+///
+/// The wireframes leave the bottom of the playing state empty on purpose —
+/// "that void is what makes 1c land" — so the chart takes a share of the
+/// space rather than all of it. On a short phone the chart keeps priority and
+/// the void is what shrinks.
+class _Stage extends StatelessWidget {
+  const _Stage({
+    required this.chart,
+    required this.toolbar,
+    required this.transport,
+    required this.fillChart,
+    required this.toolbarBand,
+    required this.transportBand,
+  });
+
+  final Widget chart;
+  final Widget? toolbar;
+  final Widget? transport;
+  final bool fillChart;
+  final double toolbarBand;
+  final double transportBand;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints box) {
+        final double controls =
+            (toolbar == null ? 0 : toolbarBand) +
+            (transport == null ? 0 : transportBand);
+        final double free = math.max(0, box.maxHeight - controls);
+        final double chartHeight = fillChart
+            ? free
+            : math.min(free, math.max(free * 0.62, 230));
+
+        return Column(
+          children: <Widget>[
+            SizedBox(height: chartHeight, child: chart),
+            if (toolbar != null) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
+              toolbar!,
+            ],
+            if (transport != null) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
+              transport!,
+            ],
+            const Spacer(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// The chart in its ruled frame, with the one overlay each state carries:
+/// the OHLC readout while playing, the entry line in advanced mode, and the
+/// drawdown chip while halted.
+class _ChartFrame extends StatelessWidget {
+  const _ChartFrame({
+    required this.state,
+    required this.settings,
+    required this.labels,
+    required this.halted,
+  });
+
+  final ReplayState state;
+  final ChartSettings settings;
+  final ChartLabels labels;
+  final bool halted;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Candle> visible = state.visibleCandles;
+
+    final Widget overlay;
+    if (halted) {
+      overlay = _DrawdownChip(drawdown: _drawdownFromPeak(visible));
+    } else if (state.mode.isAdvanced) {
+      overlay = Text(
+        'ENTRY ${formatRupees(state.level.startingBalance)} · '
+        'AVG ${labels.price(_averageCost(state))}',
+        style: AppText.mono(size: 10.5, color: AppColors.textSecondary),
+      );
+    } else {
+      overlay = OhlcLegend(
+        bar: visible.isEmpty ? null : visible.last,
+        previous: visible.length > 1 ? visible[visible.length - 2] : null,
+        labels: labels,
+        indicatorLegend: <String>[
+          for (final IndicatorSpec i in settings.indicators) i.label,
         ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: halted
+                ? AppColors.down.withValues(alpha: 0.4)
+                : AppColors.border,
+          ),
+        ),
+        child: Stack(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 30, 2, 2),
+              child: ProChart(
+                bars: visible,
+                baseInterval: BarInterval.d1,
+                settings: settings,
+                labels: labels,
+                // Keeps the newest candle in view as the replay advances,
+                // unless the player has panned away to look at something.
+                autoFollow: true,
+                replayCursorIndex: visible.length - 1,
+                percentBaseline: state.level.candles.first.close,
+              ),
+            ),
+            Positioned(
+              left: AppSpacing.sm + 2,
+              top: AppSpacing.sm,
+              right: AppSpacing.sm,
+              child: IgnorePointer(
+                child: Align(alignment: Alignment.topLeft, child: overlay),
+              ),
+            ),
+            PauseFlashOverlay(
+              treatment: state.activePausePoint?.flashTreatment,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// How far the latest close sits below the highest close so far. Relative,
+  /// so it is safe in blind mode.
+  static double _drawdownFromPeak(List<Candle> bars) {
+    if (bars.isEmpty) return 0;
+    double peak = bars.first.close;
+    for (final Candle c in bars) {
+      if (c.close > peak) peak = c.close;
+    }
+    return peak <= 0 ? 0 : 1 - bars.last.close / peak;
+  }
+
+  /// Weighted average cost of the units currently held, rebuilt from the
+  /// opening position and the trade log. Sells leave it unchanged, as they
+  /// do on any broker statement.
+  static double _averageCost(ReplayState state) {
+    final double entry = state.level.candles.first.close;
+    double units =
+        state.level.startingBalance * _openingDeployedFraction / entry;
+    double cost = units * entry;
+    for (final t in state.trades) {
+      if (t.unitsDelta > 0) {
+        cost += t.unitsDelta * t.price;
+        units += t.unitsDelta;
+      } else if (units > 0) {
+        final double avg = cost / units;
+        units += t.unitsDelta;
+        cost = avg * math.max(0, units);
+      }
+    }
+    return units <= 1e-12 ? entry : cost / units;
+  }
+
+  /// Mirrors `Portfolio.initialDeployedFraction`, which is what the opening
+  /// position was bought with.
+  static const double _openingDeployedFraction = 0.75;
+}
+
+class _DrawdownChip extends StatelessWidget {
+  const _DrawdownChip({required this.drawdown});
+
+  final double drawdown;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.alarmBackground.withValues(alpha: 0.9),
+        border: Border.all(color: AppColors.down.withValues(alpha: 0.6)),
+      ),
+      child: Text(
+        'DRAWDOWN −${(drawdown * 100).round()}%',
+        style: AppText.label(
+          size: 11,
+          weight: FontWeight.w600,
+          color: AppColors.down,
+        ),
       ),
     );
   }
 }
 
-class _StartOverlay extends StatelessWidget {
-  const _StartOverlay({
+/// Artboard 1a's chart slot before the tape rolls: a corner-ticked viewfinder
+/// with a grid, a slow scan sweep and the bar count. Nothing about the series
+/// is drawn until the run starts.
+class _AwaitingFeed extends StatefulWidget {
+  const _AwaitingFeed({required this.bars});
+
+  final int bars;
+
+  @override
+  State<_AwaitingFeed> createState() => _AwaitingFeedState();
+}
+
+class _AwaitingFeedState extends State<_AwaitingFeed>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sweep = AnimationController(
+    vsync: this,
+    duration: AppMotion.ambientSlow,
+  );
+
+  @override
+  void dispose() {
+    _sweep.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool animate =
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+    if (animate && !_sweep.isAnimating) _sweep.repeat();
+    if (!animate && _sweep.isAnimating) _sweep.stop();
+
+    return CornerTickFrame(
+      railColor: AppColors.border,
+      tick: 18,
+      child: ClipRect(
+        child: Stack(
+          children: <Widget>[
+            const Positioned.fill(child: CustomPaint(painter: _GridPainter())),
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _sweep,
+                builder: (BuildContext context, Widget? _) =>
+                    FractionalTranslation(
+                      translation: Offset(
+                        0,
+                        animate ? _sweep.value * 1.2 - 0.1 : 0.55,
+                      ),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: <Color>[
+                                AppColors.accent.withValues(alpha: 0),
+                                AppColors.accent.withValues(alpha: 0.07),
+                                AppColors.accent.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'AWAITING FEED',
+                      style: AppText.railLabel(
+                        size: 22,
+                        weight: FontWeight.w500,
+                        color: AppColors.accent.withValues(alpha: 0.85),
+                        letterSpacing: 22 * 0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm + 2),
+                  Text(
+                    '${widget.bars} BARS BUFFERED',
+                    style: AppText.label(size: 11),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  const _GridPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint p = Paint()
+      ..color = AppColors.border.withValues(alpha: 0.7)
+      ..strokeWidth = 0.6;
+    const int cols = 9;
+    const int rows = 6;
+    for (int i = 1; i < cols; i++) {
+      final double x = size.width * i / cols;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    }
+    for (int i = 1; i < rows; i++) {
+      final double y = size.height * i / rows;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter old) => false;
+}
+
+/// The pre-run brief (artboard 1a): what the player is walking into, without
+/// telling them *which* crash it is — everything here is identity-free.
+class _PreRunBrief extends StatelessWidget {
+  const _PreRunBrief({
     required this.mode,
     required this.brief,
+    required this.drawdowns,
+    required this.color,
     required this.onStart,
   });
 
@@ -287,286 +635,345 @@ class _StartOverlay extends StatelessWidget {
   /// would make the whole run a memory test.
   final LevelBrief brief;
 
+  /// Advanced mode grades the drawdowns the series finds for itself, so it
+  /// counts those instead of scripted calls.
+  final int drawdowns;
+
+  final Color color;
   final VoidCallback onStart;
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      // 0.97, the opacity the HUD canvas specifies for an overlay panel. At
-      // 0.88 the chart's axis labels and last-price tag read through the
-      // brief, which made the text look like it was floating on the candles.
-      color: AppColors.background.withValues(alpha: 0.97),
-      // The brief scrolls; the button does not.
-      //
-      // Both used to live in one scroll view, which meant that whenever the
-      // content was taller than the chart area the CTA went under the fold —
-      // on an iPhone SE it was cut off by about 20pt, so the primary action
-      // of the screen was half-visible and untappable. Pinning it costs
-      // nothing on a tall phone and fixes the short one outright.
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+    final int months = math.max(1, brief.approxMonths);
+    final int tests = mode.isBeginner ? brief.moments : drawdowns;
+    final String testUnit = mode.isBeginner
+        ? (tests == 1 ? 'CALL' : 'CALLS')
+        : (tests == 1 ? 'DRAWDOWN' : 'DRAWDOWNS');
+
+    final Color severity = switch (brief.severity) {
+      BriefSeverity.historic || BriefSeverity.severe => AppColors.down,
+      BriefSeverity.significant => AppColors.caution,
+      BriefSeverity.mild => AppColors.textSecondary,
+    };
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.sm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              'YOU ARE ALREADY INVESTED.',
+              style: AppText.headline(size: 25, letterSpacing: 25 * 0.04),
+            ),
+            Text(
+              mode.isBeginner
+                  ? 'THE FALL HAS BEGUN.'
+                  : 'NOTHING WILL STOP IT FOR YOU.',
+              style: AppText.headline(
+                size: 25,
+                color: const Color(0xFF4B5763),
+                letterSpacing: 25 * 0.04,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md + 4),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Text(
-                    'You are already invested.',
-                    style: AppText.title(size: 22),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: cardDecoration(raised: true),
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              _BriefStat(
-                                value: brief.approxMonths.toString(),
-                                unit: brief.approxMonths == 1
-                                    ? 'MONTH'
-                                    : 'MONTHS',
-                              ),
-                              Container(
-                                width: 1,
-                                height: 28,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                ),
-                                color: AppColors.border,
-                              ),
-                              _BriefStat(
-                                value: brief.moments.toString(),
-                                unit: brief.moments == 1 ? 'CALL' : 'CALLS',
-                              ),
-                              Container(
-                                width: 1,
-                                height: 28,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                ),
-                                color: AppColors.border,
-                              ),
-                              _BriefStat(
-                                value: brief.severity.label,
-                                unit: 'SEVERITY',
-                                color: switch (brief.severity) {
-                                  BriefSeverity.historic ||
-                                  BriefSeverity.severe =>
-                                    AppColors.down,
-                                  BriefSeverity.significant =>
-                                    AppColors.simulatedBadge,
-                                  BriefSeverity.mild =>
-                                    AppColors.textSecondary,
-                                },
-                                small: true,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            brief.body,
-                            textAlign: TextAlign.center,
-                            style: AppText.body(
-                              size: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+                  Expanded(
+                    child: HudStatCell(
+                      value: '$months',
+                      label: months == 1 ? 'MONTH' : 'MONTHS',
+                      valueSize: 30,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Text(
-                      'The asset and the dates stay hidden until the debrief. '
-                      '${mode.blurb}',
-                      textAlign: TextAlign.center,
-                      style: AppText.body(
-                        size: 12,
-                        color: AppColors.textFaint,
+                  const SizedBox(width: AppSpacing.sm + 4),
+                  Expanded(
+                    child: HudStatCell(
+                      value: '$tests',
+                      label: testUnit,
+                      valueSize: 30,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm + 4),
+                  Expanded(
+                    child: Semantics(
+                      label: 'Severity ${brief.severity.label.toLowerCase()}',
+                      child: HudStatCell(
+                        value: brief.severity.label,
+                        label: 'SEVERITY',
+                        labelColor: severity,
+                        borderColor: severity.withValues(alpha: 0.55),
+                        fill: severity.withValues(alpha: 0.07),
+                        valueWidget: _SeverityGlyphs(
+                          count: brief.severity.index + 1,
+                          color: severity,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              top: AppSpacing.md,
-              bottom: AppSpacing.lg,
-            ),
-            child: FilledButton(
+            const SizedBox(height: AppSpacing.md + 4),
+            HudButton(
+              label: 'START RUN',
+              color: color,
+              height: 58,
+              fontSize: 22,
+              letterSpacingEm: 0.3,
               onPressed: onStart,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.background,
-                shape: const RoundedRectangleBorder(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xl,
-                  vertical: AppSpacing.md,
-                ),
-              ),
+            ),
+            const SizedBox(height: AppSpacing.sm + 4),
+            Center(
               child: Text(
-                'START RUN',
-                style: AppText.mono(
-                  size: 14,
-                  weight: FontWeight.w700,
-                  color: AppColors.background,
-                  letterSpacing: 1.4,
-                ),
+                'NO EXIT ONCE THE TAPE ROLLS — EXCEPT ×',
+                style: AppText.label(size: 10.5, color: AppColors.textFaint),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Play/pause plus the three real replay speeds.
+/// Severity as a row of warning triangles — a band, never a percentage, so
+/// the brief cannot narrow the guess to one event.
+class _SeverityGlyphs extends StatelessWidget {
+  const _SeverityGlyphs({required this.count, required this.color});
+
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    // Scales down rather than overflowing: HISTORIC is four triangles, and a
+    // third of a 375pt phone is narrower than four at full size.
+    return SizedBox(
+      height: 33,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.bottomLeft,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
+            for (int i = 0; i < count; i++)
+              Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: CustomPaint(
+                  size: const Size(20, 18),
+                  painter: _TrianglePainter(color: color),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrianglePainter extends CustomPainter {
+  const _TrianglePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width / 2, 0)
+        ..lineTo(size.width, size.height)
+        ..lineTo(0, size.height)
+        ..close(),
+      Paint()..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_TrianglePainter old) => old.color != color;
+}
+
+/// Play/pause plus the three real replay speeds (artboard 1b).
 ///
-/// Speed is the one chart control that belongs to the *replay* rather than to
-/// the chart, so it stays here rather than moving into [ChartToolbar] with
-/// the rest of the console.
+/// Speed is the one control that belongs to the *replay* rather than to the
+/// chart, so it stays here rather than moving into [ChartToolbar].
 class _TransportBar extends StatelessWidget {
-  const _TransportBar({required this.state, required this.controller});
+  const _TransportBar({
+    required this.state,
+    required this.controller,
+    required this.color,
+  });
 
   final ReplayState state;
   final ReplayController controller;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final bool isPlaying = state.status == ReplayStatus.playing;
     final bool locked = state.isAwaitingDecision || state.isFinished;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: <Widget>[
-          IconButton(
-            onPressed: locked
-                ? null
-                : (isPlaying ? controller.pause : controller.play),
-            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-            color: AppColors.accent,
-            // Compact visually, but never below the 44pt minimum tap target
-            // — shrinking the hit box to fit the row was the wrong trade.
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(
-              width: kMinTouchTarget,
-              height: kMinTouchTarget,
-            ),
-            iconSize: 24,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          for (final ReplaySpeed speed in ReplaySpeed.values)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: _SpeedChip(
-                speed: speed,
-                selected: state.speed == speed,
-                onTap: () => controller.setSpeed(speed),
-              ),
-            ),
-          const Spacer(),
-          // Flexible, not fixed. With a Spacer soaking up the slack, an
-          // over-wide fixed trailing group cannot shrink and the bar
-          // overflows the screen — which it did, by 60pt, on a 390pt phone.
-          Flexible(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                if (state.mode.isBeginner && state.totalMoments > 0) ...<Widget>[
-                  Flexible(
-                    child: Text(
-                      '${state.momentsResolved}/${state.totalMoments}',
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.label(),
-                    ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Semantics(
+              button: true,
+              label: isPlaying ? 'Pause' : 'Play',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: locked
+                    ? null
+                    : () {
+                        HapticFeedback.selectionClick();
+                        isPlaying ? controller.pause() : controller.play();
+                      },
+                child: Container(
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.06),
+                    border: Border.all(color: color.withValues(alpha: 0.5)),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Flexible(
-                  child: Text(
-                    switch (state.status) {
-                      ReplayStatus.idle => 'READY',
-                      ReplayStatus.playing => 'RUNNING',
-                      ReplayStatus.paused => 'PAUSED',
-                      ReplayStatus.awaitingDecision => 'DECIDE',
-                      ReplayStatus.finished => 'COMPLETE',
-                    },
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
-                    style: AppText.label(
-                      color: state.isAwaitingDecision
-                          ? AppColors.flashHard
-                          : AppColors.textSecondary,
-                    ),
+                  child: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: color,
+                    size: 24,
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.md + 4),
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    for (final ReplaySpeed speed in ReplaySpeed.values)
+                      Expanded(
+                        child: _SpeedSegment(
+                          speed: speed,
+                          selected: state.speed == speed,
+                          color: color,
+                          onTap: () => controller.setSpeed(speed),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _SpeedChip extends StatelessWidget {
-  const _SpeedChip({
+class _SpeedSegment extends StatelessWidget {
+  const _SpeedSegment({
     required this.speed,
     required this.selected,
+    required this.color,
     required this.onTap,
   });
 
   final ReplaySpeed speed;
   final bool selected;
+  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.accent.withValues(alpha: 0.14)
-              : Colors.transparent,
-          border: Border.all(
-            color: selected ? AppColors.accent : AppColors.border,
+    final String label = speed.label.replaceAll('x', '×');
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${speed.multiplier} times speed',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          alignment: Alignment.center,
+          color: selected ? color.withValues(alpha: 0.13) : Colors.transparent,
+          child: Text(
+            label,
+            style: AppText.body(
+              size: 15,
+              weight: FontWeight.w500,
+              color: selected ? color : AppColors.textSecondary,
+              height: 1,
+            ),
           ),
-          borderRadius: BorderRadius.circular(3),
         ),
-        child: Text(
-          speed.label,
-          style: AppText.mono(
-            size: 11,
-            weight: FontWeight.w700,
-            color: selected ? AppColors.accent : AppColors.textSecondary,
-          ),
+      ),
+    );
+  }
+}
+
+/// The playing state's bottom line (artboard 1b). The right-hand half is a
+/// promise blind mode makes: the player never knows when the next call is.
+class _StatusFooter extends StatelessWidget {
+  const _StatusFooter({required this.paused});
+
+  final bool paused;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        // spaceBetween rather than a Spacer: a Spacer takes an equal flex
+        // share beside Flexible text and squeezes it into an ellipsis.
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Flexible(
+              child: Text(
+                paused ? 'PAUSED' : 'NO DECISION PENDING',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.label(size: 10.5, color: AppColors.textFaint),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Flexible(
+              child: Text(
+                'NEXT CALL UNKNOWN',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: AppText.label(size: 10.5, color: AppColors.textFaint),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -585,74 +992,30 @@ class _RunCompleteBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      color: AppColors.surfaceRaised,
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
       child: SafeArea(
         top: false,
-        child: FilledButton(
+        child: HudButton(
+          label: 'REVEAL & SCORE',
+          style: HudButtonStyle.filled,
+          height: 56,
+          fontSize: 17,
           onPressed: onDebrief,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: AppColors.background,
-            shape: const RoundedRectangleBorder(),
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-          ),
-          child: Text(
-            'REVEAL & SCORE',
-            style: AppText.mono(
-              size: 14,
-              weight: FontWeight.w700,
-              color: AppColors.background,
-              letterSpacing: 1.4,
-            ),
-          ),
         ),
       ),
     );
   }
 }
 
-/// One figure in the pre-play brief.
-class _BriefStat extends StatelessWidget {
-  const _BriefStat({
-    required this.value,
-    required this.unit,
-    this.color = AppColors.textPrimary,
-    this.small = false,
-  });
-
-  final String value;
-  final String unit;
-  final Color color;
-  final bool small;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          value,
-          style: AppText.mono(
-            size: small ? 13 : 20,
-            weight: FontWeight.w700,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(unit, style: AppText.label(size: 8.5)),
-      ],
-    );
-  }
-}
-
-/// The run's current state, and the one colour and label that follow from it.
-///
-/// Artboards 1a-1d are the same six regions with a different state colour and
-/// a different bottom panel; centralising the mapping here is what keeps the
-/// app bar, the header rail, the chart frame and the ground from disagreeing.
+/// The run's current state, and the one colour, title and status pip that
+/// follow from it. Centralised so the top bar, the header rail, the chart
+/// frame and the ground cannot disagree.
 enum _RunState {
   idle,
   playing,
+  paused,
   halted,
   advanced,
   finished;
@@ -660,100 +1023,60 @@ enum _RunState {
   static _RunState of(ReplayState state) {
     if (state.isAwaitingDecision) return _RunState.halted;
     if (state.isFinished) return _RunState.finished;
-    if (state.mode.isAdvanced) return _RunState.advanced;
     if (state.status == ReplayStatus.idle) return _RunState.idle;
+    if (state.mode.isAdvanced) return _RunState.advanced;
+    if (state.status == ReplayStatus.paused) return _RunState.paused;
     return _RunState.playing;
   }
 
   bool get isHalted => this == _RunState.halted;
 
+  /// cyan nominal, amber for advanced mode's no-safety-net trading, red only
+  /// while halted.
   Color get color => switch (this) {
-        _RunState.halted => AppColors.down,
-        _RunState.playing || _RunState.advanced => AppColors.caution,
-        _RunState.idle || _RunState.finished => AppColors.accent,
-      };
+    _RunState.halted => AppColors.down,
+    _RunState.advanced => AppColors.caution,
+    _ => AppColors.accent,
+  };
 
-  /// App-bar label. The halted state names the call number, because "which of
-  /// nine is this" is the thing a player wants at that moment.
-  String get label => switch (this) {
-        _RunState.halted => 'HALTED',
-        _RunState.advanced => 'ADVANCED RUN',
-        _RunState.finished => 'RUN COMPLETE',
-        _RunState.idle || _RunState.playing => 'BEGINNER RUN',
-      };
+  /// Top-bar title. The halted state names the call number, because "which
+  /// of nine is this" is what a player wants at that moment.
+  String title(ReplayState state) => switch (this) {
+    _RunState.halted =>
+      'HALTED · CALL ${state.decisions.length + 1} OF '
+          '${state.level.pausePoints.length}',
+    _RunState.advanced => 'ADVANCED RUN',
+    _RunState.finished => 'RUN COMPLETE',
+    _ => state.mode.isAdvanced ? 'ADVANCED RUN' : 'BEGINNER RUN',
+  };
 
-  /// The right-hand status word. Short by necessity — it shares the app bar
-  /// with a title that is already widely tracked.
-  String get pip => switch (this) {
-        _RunState.halted => 'STOP',
-        _RunState.advanced => 'NO HALTS',
-        _RunState.playing => 'LIVE',
-        _RunState.finished => 'ENDED',
-        _RunState.idle => 'ARMED',
-      };
-
-  /// Whether the pip's dot should pulse. Static once the run is over.
-  bool get pulses => this != _RunState.finished;
-}
-
-/// The app bar's right-hand status indicator: a dot and a word.
-///
-/// The dot breathes while the run is live, which is the canvas's `mnPulse` /
-/// `mnBlink` — ambient motion slow enough that the eye never catches it
-/// moving, per AppMotion's ambient durations.
-class _StatusPip extends StatefulWidget {
-  const _StatusPip({required this.runState});
-
-  final _RunState runState;
-
-  @override
-  State<_StatusPip> createState() => _StatusPipState();
-}
-
-class _StatusPipState extends State<_StatusPip>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(
-    vsync: this,
-    duration: AppMotion.ambient,
-  );
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Color color = widget.runState.color;
-    // An ambient loop never settles, so it has to be opt-out: the OS
-    // reduce-motion setting silences it, and so does a finished run.
-    final bool animate = widget.runState.pulses &&
-        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
-    if (animate) {
-      if (!_pulse.isAnimating) _pulse.repeat(reverse: true);
-    } else if (_pulse.isAnimating) {
-      _pulse.stop();
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        FadeTransition(
-          opacity: animate
-              ? Tween<double>(begin: 0.35, end: 1).animate(
-                  CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
-                )
-              : const AlwaysStoppedAnimation<double>(0.6),
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.xs + 2),
-        Text(widget.runState.pip, style: AppText.label(size: 9, color: color)),
-      ],
-    );
-  }
+  Widget get pip => switch (this) {
+    // A red dot beside a grey word: armed, not alarmed.
+    _RunState.idle => const StatusPip(
+      label: 'ARMED',
+      color: AppColors.textSecondary,
+      dotColor: AppColors.down,
+    ),
+    _RunState.playing => const StatusPip(
+      label: 'LIVE',
+      color: AppColors.textSecondary,
+      dotColor: AppColors.accent,
+    ),
+    _RunState.paused => const StatusPip(
+      label: 'PAUSED',
+      color: AppColors.textFaint,
+      pulse: false,
+    ),
+    _RunState.halted => const StatusPip(label: 'STOP', color: AppColors.down),
+    _RunState.advanced => const StatusPip(
+      label: 'NO HALTS',
+      color: AppColors.textSecondary,
+      showDot: false,
+    ),
+    _RunState.finished => const StatusPip(
+      label: 'ENDED',
+      color: AppColors.textFaint,
+      pulse: false,
+    ),
+  };
 }

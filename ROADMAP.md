@@ -77,6 +77,17 @@ Open items carried forward:
   the campaign levels — but it is not a clearance. Same unresolved question as
   the levels, in a milder form.
 
+## Phase 7c — Wireframe implementation (DONE)
+The September wireframe set, built into the existing app: cyan HUD retheme
+(Inter + JetBrains Mono), campaign home, the level screen's four states,
+accordion Debrief with NEXT LEVEL, the Daily Pivot client (all phases, real
+Binance strike and resolution, points paid once), the paywall, the feed-state
+grammar in Live Markets, and the Nerve Profile with a share card.
+
+Open items carried forward:
+- Daily Pivot crowd backend (Firestore + Cloud Functions) and notifications.
+- RevenueCat wiring behind `PurchasesService` (below).
+
 ## Phase 8 — RevenueCat + store submission prep (2-3 days)
 - Full MONETIZATION.md checklist: offerings, entitlement gates (campaign lock,
   endless lock only), paywall, restore purchases, sandbox-test both platforms.

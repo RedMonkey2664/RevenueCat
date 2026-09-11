@@ -46,3 +46,20 @@ value across all of them without feeling scattered.
 - No monetization inside Daily Pivot or Time Machine (no ads, no "pay to skip",
   nothing) — both stay pure free funnels into the Simulator, per the original brief.
 - No hand-rolled trial logic beyond what RevenueCat/the store provides natively.
+
+## As built (Sep 2026)
+
+- `PurchasesService` is the one seam to the store; the app ships
+  `StoreNotConnectedService` until RevenueCat's dashboard app, `pro`
+  entitlement and platform keys exist (Phase 8). With no store the paywall
+  shows its unloaded state — "₹ ———" and "STORE NOT CONNECTED IN THIS BUILD" —
+  CONTINUE is disabled, and Restore is absent rather than inert.
+- Gate points: the campaign level loader (a PRO node, or NEXT LEVEL into
+  one) and the Nerve Profile's full report. **Decision for Somi:** the
+  profile report was not on the original Pro list; the wireframes put it
+  behind "UNLOCK WITH PREMIUM". Endless is *not* gated — still your call.
+- **Preview builds:** while no store is connected, the paywall offers
+  "PREVIEW BUILD · CONTINUE WITHOUT PRO", which unlocks Pro for the session
+  only. It exists so the demo is not a locked door, and it disappears on its
+  own the moment `isConfigured` is true.
+- Terms and Privacy links are absent until their URLs exist.
