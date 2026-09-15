@@ -47,6 +47,8 @@ dependencies:
   intl: ^0.20.3
   path_provider: ^2.1.6
   meta: ^1.17.0
+  # Plays the mascot clips in assets/mascot/ on Android, iOS and web.
+  video_player: ^2.11.1
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,11 @@ flutter:
     - data/simulator_levels/
     # Endless mode's long-run pools, one per market (LEVELS.md).
     - data/simulator_endless/
+    # Mascot animations, one file per use (lib/app/widgets/mascot.dart).
+    # Listed one by one on purpose: raw Flow exports waiting to be keyed by
+    # tool/mascot/key_clip.py live in the same folder and must not ship.
+    - assets/mascot/loading.mp4
+    - assets/mascot/welcome.mp4
 
   # Bundled, not fetched at runtime: DESIGN.md wants identical number
   # rendering on both platforms, and the Simulator has to work offline.

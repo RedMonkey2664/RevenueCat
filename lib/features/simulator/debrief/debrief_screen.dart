@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/formatting.dart';
 import '../../../app/shell_state.dart';
 import '../../../app/theme.dart';
+import '../../../app/widgets/mascot.dart';
 import '../../../app/widgets/discipline_badge.dart';
 import '../../../app/widgets/hud.dart';
 import '../../../app/widgets/hud_accordion.dart';
@@ -130,9 +131,12 @@ class _DebriefScreenState extends ConsumerState<DebriefScreen> {
     }
 
     try {
-      final SimulationLevel level = await ref
-          .read(levelRepositoryProvider)
-          .loadLevel(next);
+      if (!mounted) return;
+      final SimulationLevel level = await runWithMascot(
+        context,
+        () => ref.read(levelRepositoryProvider).loadLevel(next),
+        caption: 'ARMING THE NEXT RUN',
+      );
       root.popUntil((Route<dynamic> r) => r.isFirst);
       unawaited(
         root.push(

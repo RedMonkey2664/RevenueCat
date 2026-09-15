@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/formatting.dart';
 import '../../../app/shell_state.dart';
 import '../../../app/theme.dart';
+import '../../../app/widgets/mascot.dart';
 import '../../../app/widgets/feed_state.dart';
 import '../../../app/widgets/hud.dart';
 import '../../../core/services/progress_service.dart';
@@ -1008,23 +1009,10 @@ class PivotLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: _pad,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text("TODAY'S INSTRUMENT", style: AppText.label(size: 11)),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: <Widget>[
-              Text('BITCOIN', style: AppText.headline(size: 38)),
-              const Spacer(),
-              const FeedLoadingValue(width: 140, height: 34),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const FeedLoadingValue(width: double.infinity, height: 170),
-        ],
+    return const Center(
+      child: MascotLoader(
+        caption: "READING TODAY'S STRIKE",
+        detail: 'Bitcoin at 09:00 IST, from Binance.',
       ),
     );
   }

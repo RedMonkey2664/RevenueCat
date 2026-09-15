@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets/mascot.dart';
 import '../../app/widgets/feed_state.dart';
 import '../../core/market/candle.dart';
 import '../../core/market/instrument.dart';
@@ -66,14 +67,14 @@ class _InstrumentDetailScreenState
   /// Enough to fill the screen and pan back a good way, without asking a
   /// free endpoint for ten years of one-minute bars.
   static Duration _rangeFor(BarInterval interval) => switch (interval) {
-        BarInterval.m1 => const Duration(days: 5),
-        BarInterval.m5 => const Duration(days: 20),
-        BarInterval.m15 || BarInterval.m30 => const Duration(days: 60),
-        BarInterval.h1 || BarInterval.h4 => const Duration(days: 240),
-        BarInterval.d1 => const Duration(days: 365 * 3),
-        BarInterval.w1 => const Duration(days: 365 * 10),
-        BarInterval.mo1 => const Duration(days: 365 * 20),
-      };
+    BarInterval.m1 => const Duration(days: 5),
+    BarInterval.m5 => const Duration(days: 20),
+    BarInterval.m15 || BarInterval.m30 => const Duration(days: 60),
+    BarInterval.h1 || BarInterval.h4 => const Duration(days: 240),
+    BarInterval.d1 => const Duration(days: 365 * 3),
+    BarInterval.w1 => const Duration(days: 365 * 10),
+    BarInterval.mo1 => const Duration(days: 365 * 20),
+  };
 
   Future<void> _load() async {
     final int generation = ++_generation;
@@ -86,8 +87,10 @@ class _InstrumentDetailScreenState
     final BarInterval wanted = _settings.interval;
 
     try {
-      final BarInterval native =
-          service.nativeIntervalFor(widget.instrument, wanted);
+      final BarInterval native = service.nativeIntervalFor(
+        widget.instrument,
+        wanted,
+      );
       final DateTime end = DateTime.now().toUtc();
       final Duration range = _rangeFor(wanted);
       final Duration cap = service.maxHistoryFor(widget.instrument, native);
@@ -106,7 +109,7 @@ class _InstrumentDetailScreenState
         _loading = false;
         _error = bars.isEmpty
             ? 'No ${wanted.longLabel} data was returned for '
-                '${widget.instrument.ticker}.'
+                  '${widget.instrument.ticker}.'
             : null;
       });
     } on MarketDataException catch (e) {
@@ -141,8 +144,7 @@ class _InstrumentDetailScreenState
   @override
   Widget build(BuildContext context) {
     final Instrument instrument = widget.instrument;
-    final Quote? quote =
-        ref.watch(liveQuotesProvider).quotes[instrument.id];
+    final Quote? quote = ref.watch(liveQuotesProvider).quotes[instrument.id];
     final MarketDataService service = ref.watch(marketDataServiceProvider);
 
     final List<BarInterval> intervals = intervalsFor(
@@ -150,13 +152,12 @@ class _InstrumentDetailScreenState
       fetchable: service.intervalsFor(instrument),
     );
 
-    final ChartLabels labels =
-        RealChartLabels(currencySymbol: instrument.currencySymbol);
+    final ChartLabels labels = RealChartLabels(
+      currencySymbol: instrument.currencySymbol,
+    );
 
-    final Candle? legendBar =
-        _hovered ?? (_bars.isEmpty ? null : _bars.last);
-    final int legendIndex =
-        legendBar == null ? -1 : _bars.indexOf(legendBar);
+    final Candle? legendBar = _hovered ?? (_bars.isEmpty ? null : _bars.last);
+    final int legendIndex = legendBar == null ? -1 : _bars.indexOf(legendBar);
 
     return Scaffold(
       appBar: AppBar(
@@ -222,9 +223,7 @@ class _InstrumentDetailScreenState
                   child: IgnorePointer(
                     child: OhlcLegend(
                       bar: legendBar,
-                      previous: legendIndex > 0
-                          ? _bars[legendIndex - 1]
-                          : null,
+                      previous: legendIndex > 0 ? _bars[legendIndex - 1] : null,
                       labels: labels,
                       indicatorLegend: <String>[
                         for (final IndicatorSpec s in _settings.indicators)
@@ -233,7 +232,19 @@ class _InstrumentDetailScreenState
                     ),
                   ),
                 ),
-                if (_loading)
+                if (_loading && _bars.isEmpty)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: AppColors.background,
+                      child: Center(
+                        child: MascotLoader(
+                          caption: 'LOADING THE CHART',
+                          size: 112,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (_loading)
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -334,7 +345,7 @@ class _QuoteHeader extends StatelessWidget {
                 q == null
                     ? '—'
                     : '${instrument.currencySymbol}'
-                        '${formatPrice(q.price)}',
+                          '${formatPrice(q.price)}',
                 style: AppText.display(size: 24, weight: FontWeight.w700),
               ),
               const SizedBox(height: 2),

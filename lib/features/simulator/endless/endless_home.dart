@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../app/widgets/mascot.dart';
 import '../../../app/widgets/pressable.dart';
 import '../campaign/level_repository.dart' show AssetClass;
 import '../engine/endless_generator.dart';
@@ -35,10 +36,17 @@ class _EndlessHomeState extends ConsumerState<EndlessHome> {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     try {
-      final HistoryPool pool =
-          await ref.read(historyPoolRepositoryProvider).load(market);
-      final SimulationLevel level =
-          EndlessGenerator(pool: pool).generate();
+      final SimulationLevel level = await runWithMascot(
+        context,
+        () async {
+          final HistoryPool pool = await ref
+              .read(historyPoolRepositoryProvider)
+              .load(market);
+          return EndlessGenerator(pool: pool).generate();
+        },
+        caption: 'FINDING A WINDOW',
+        detail: 'Six months you have never seen.',
+      );
 
       if (!mounted) return;
       setState(() => _busy = false);
@@ -59,8 +67,9 @@ class _EndlessHomeState extends ConsumerState<EndlessHome> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<AssetClass>> markets =
-        ref.watch(endlessMarketsProvider);
+    final AsyncValue<List<AssetClass>> markets = ref.watch(
+      endlessMarketsProvider,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('ENDLESS')),
@@ -79,7 +88,9 @@ class _EndlessHomeState extends ConsumerState<EndlessHome> {
           markets.when(
             loading: () => const Padding(
               padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: MascotLoader(caption: 'READING THE HISTORY POOLS'),
+              ),
             ),
             error: (Object e, StackTrace s) => _Panel(
               color: AppColors.down,
@@ -91,7 +102,8 @@ class _EndlessHomeState extends ConsumerState<EndlessHome> {
                 return const _Panel(
                   color: AppColors.simulatedBadge,
                   title: 'NO HISTORY POOL BUNDLED',
-                  body: 'Endless needs a long-run price series per market, '
+                  body:
+                      'Endless needs a long-run price series per market, '
                       'and none is bundled yet.',
                 );
               }
@@ -110,7 +122,8 @@ class _EndlessHomeState extends ConsumerState<EndlessHome> {
                   _Panel(
                     color: AppColors.border,
                     title: 'ONLY ONE MARKET SO FAR',
-                    body: 'International and Indian pools need the same '
+                    body:
+                        'International and Indian pools need the same '
                         'per-market data licence as the campaign levels. '
                         'Endless runs on whichever markets are cleared, so '
                         'they appear here as they land.',
@@ -206,11 +219,7 @@ class _MarketCard extends StatelessWidget {
 }
 
 class _Panel extends StatelessWidget {
-  const _Panel({
-    required this.color,
-    required this.title,
-    required this.body,
-  });
+  const _Panel({required this.color, required this.title, required this.body});
 
   final Color color;
   final String title;

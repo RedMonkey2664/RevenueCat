@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets/mascot.dart';
 import '../../core/services/crypto_api_service.dart';
 import 'services/historical_price_lookup.dart';
 import 'widgets/result_graphic.dart';
@@ -25,10 +26,10 @@ class CalculatorScreen extends ConsumerStatefulWidget {
 }
 
 class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
-  final TextEditingController _amount =
-      TextEditingController(text: '80000');
-  final TextEditingController _label =
-      TextEditingController(text: 'a Royal Enfield');
+  final TextEditingController _amount = TextEditingController(text: '80000');
+  final TextEditingController _label = TextEditingController(
+    text: 'a Royal Enfield',
+  );
   final GlobalKey _cardKey = GlobalKey();
 
   DateTime _date = DateTime(2018);
@@ -58,14 +59,15 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     });
 
     try {
-      final TimeMachineResult result =
-          await ref.read(historicalPriceLookupProvider).calculate(
-                amountInr: amount,
-                label: _label.text.trim().isEmpty
-                    ? 'that purchase'
-                    : _label.text.trim(),
-                date: _date,
-              );
+      final TimeMachineResult result = await ref
+          .read(historicalPriceLookupProvider)
+          .calculate(
+            amountInr: amount,
+            label: _label.text.trim().isEmpty
+                ? 'that purchase'
+                : _label.text.trim(),
+            date: _date,
+          );
       if (!mounted) return;
       setState(() {
         _result = result;
@@ -83,14 +85,15 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   Future<void> _share() async {
-    final RenderRepaintBoundary? boundary = _cardKey.currentContext
-        ?.findRenderObject() as RenderRepaintBoundary?;
+    final RenderRepaintBoundary? boundary =
+        _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     try {
       final ui.Image image = await boundary.toImage(pixelRatio: 2);
-      final ByteData? bytes =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? bytes = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       if (bytes == null) return;
 
       final Directory dir = await getTemporaryDirectory();
@@ -142,10 +145,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: <Widget>[
-          Text(
-            'What did waiting cost you?',
-            style: AppText.title(size: 28),
-          ),
+          Text('What did waiting cost you?', style: AppText.title(size: 28)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Look up what an amount would have become if it had gone into '
@@ -212,9 +212,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               backgroundColor: AppColors.accent,
               foregroundColor: AppColors.background,
               disabledBackgroundColor: AppColors.border,
-              shape: const RoundedRectangleBorder(
-                borderRadius: AppRadius.chip,
-              ),
+              shape: const RoundedRectangleBorder(borderRadius: AppRadius.chip),
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               minimumSize: const Size.fromHeight(kMinTouchTarget + 8),
             ),
@@ -237,6 +235,15 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     ),
                   ),
           ),
+          if (_busy) ...<Widget>[
+            const SizedBox(height: AppSpacing.xl),
+            const Center(
+              child: MascotLoader(
+                caption: 'TRAVELLING BACK',
+                detail: 'Looking up the price on that day.',
+              ),
+            ),
+          ],
           if (_error != null) ...<Widget>[
             const SizedBox(height: AppSpacing.md),
             _ErrorPanel(message: _error!),
@@ -290,32 +297,42 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: AppText.body(size: 15, color: AppColors.textFaint),
-        filled: true,
-        fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
-        border: const OutlineInputBorder(
-          borderRadius: AppRadius.chip,
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: AppRadius.chip,
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: AppRadius.chip,
-          borderSide: BorderSide(color: AppColors.accent, width: 1.6),
-        ),
-      );
+    hintText: hint,
+    hintStyle: AppText.body(size: 15, color: AppColors.textFaint),
+    filled: true,
+    fillColor: AppColors.surface,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.md,
+    ),
+    border: const OutlineInputBorder(
+      borderRadius: AppRadius.chip,
+      borderSide: BorderSide(color: AppColors.border),
+    ),
+    enabledBorder: const OutlineInputBorder(
+      borderRadius: AppRadius.chip,
+      borderSide: BorderSide(color: AppColors.border),
+    ),
+    focusedBorder: const OutlineInputBorder(
+      borderRadius: AppRadius.chip,
+      borderSide: BorderSide(color: AppColors.accent, width: 1.6),
+    ),
+  );
 
   static String _dateLabel(DateTime d) {
     const List<String> months = <String>[
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
@@ -459,10 +476,7 @@ class _Disclosure extends StatelessWidget {
               'Illustrative and retrospective only. This is what happened, '
               'not what will happen. Nothing here is investment advice, and '
               'no future return is implied or guaranteed.',
-              style: AppText.body(
-                size: 12,
-                color: AppColors.simulatedBadge,
-              ),
+              style: AppText.body(size: 12, color: AppColors.simulatedBadge),
             ),
           ),
         ],
@@ -471,10 +485,10 @@ class _Disclosure extends StatelessWidget {
   }
 
   Widget _line(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: Text(
-          '· $text',
-          style: AppText.body(size: 12, color: AppColors.textSecondary),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    child: Text(
+      '· $text',
+      style: AppText.body(size: 12, color: AppColors.textSecondary),
+    ),
+  );
 }

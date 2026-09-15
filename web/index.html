@@ -2,15 +2,6 @@
 <html>
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
@@ -18,29 +9,118 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Market Nerve — survive real market crashes with virtual capital. A behavioural finance simulator. No real money, ever.">
+  <meta name="theme-color" content="#0A0E13">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="market_nerve">
+  <meta name="apple-mobile-web-app-title" content="Market Nerve">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>market_nerve</title>
+  <title>Market Nerve</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    The boot splash. On the web the longest wait is the browser downloading
+    the app itself, before Flutter can draw anything — so the mascot's
+    loading clip plays here, in plain HTML, until Flutter's first frame.
+
+    The poster frame is a 13KB still of the same clip, so the cat is on
+    screen immediately and the video takes over once it has streamed in.
+    Muted is required for autoplay, and a loader must be silent anyway.
+  -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #0A0E13; }
+    #mn-splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #0A0E13;
+      transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #mn-splash.done { opacity: 0; pointer-events: none; }
+    #mn-splash .frame {
+      position: relative;
+      height: min(58vh, 520px); aspect-ratio: 9 / 16;
+      border: 1px solid #1C2833; overflow: hidden;
+    }
+    #mn-splash video {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      background: #0A0E13 url("splash/mascot_poster.jpg") center / cover;
+    }
+    /* Corner ticks, as the app's viewfinder draws them. */
+    #mn-splash .tick { position: absolute; width: 18px; height: 18px; border: 0 solid #5BC8F5; }
+    #mn-splash .tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+    #mn-splash .tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+    #mn-splash .bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+    #mn-splash .br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+    #mn-splash .mark {
+      margin-top: 28px; color: #5BC8F5;
+      font: 800 24px/1.2 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.2em;
+    }
+    #mn-splash .status {
+      margin-top: 12px; color: #8A98A6;
+      font: 500 11px/1.4 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.3em; display: flex; align-items: center; gap: 10px;
+    }
+    #mn-splash .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #5BC8F5;
+      animation: mn-pulse 1.6s ease-in-out infinite alternate;
+    }
+    #mn-splash .note {
+      margin-top: 22px; color: #56626E;
+      font: 500 10px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.16em;
+    }
+    @keyframes mn-pulse { from { opacity: 0.35; } to { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      #mn-splash .dot { animation: none; }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="mn-splash" role="status" aria-label="Market Nerve is loading">
+    <div class="frame">
+      <video id="mn-splash-video" src="assets/assets/mascot/loading.mp4"
+             poster="splash/mascot_poster.jpg"
+             autoplay muted loop playsinline preload="auto"
+             aria-hidden="true"></video>
+      <span class="tick tl"></span><span class="tick tr"></span>
+      <span class="tick bl"></span><span class="tick br"></span>
+    </div>
+    <div class="mark">MARKET NERVE</div>
+    <div class="status"><span class="dot"></span>LOADING</div>
+    <div class="note">SIMULATED · NO REAL MONEY</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    (function () {
+      var video = document.getElementById('mn-splash-video');
+      // Reduced motion: hold the poster frame rather than play the loop.
+      if (window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        video.removeAttribute('autoplay');
+        video.pause();
+      }
+      window.addEventListener('flutter-first-frame', function () {
+        var splash = document.getElementById('mn-splash');
+        if (!splash) return;
+        splash.classList.add('done');
+        setTimeout(function () {
+          video.pause();
+          video.removeAttribute('src');
+          video.load();
+          splash.remove();
+        }, 450);
+      });
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

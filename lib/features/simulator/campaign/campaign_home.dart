@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../app/widgets/mascot.dart';
 import '../../../app/widgets/feed_state.dart';
 import '../../../app/widgets/hud.dart';
 import '../../../app/widgets/pressable.dart';
@@ -96,7 +97,8 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   _EntryCard(
                     icon: Icons.shuffle,
                     title: 'ENDLESS',
-                    body: 'A window you have never seen.\nBlind, like the '
+                    body:
+                        'A window you have never seen.\nBlind, like the '
                         'campaign.',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -129,7 +131,9 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(AppSpacing.xl),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(
+                    child: MascotLoader(caption: 'LOADING MISSIONS'),
+                  ),
                 ),
               ),
               error: (Object e, StackTrace s) => SliverToBoxAdapter(
@@ -199,9 +203,11 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     try {
-      final SimulationLevel level = await ref
-          .read(levelRepositoryProvider)
-          .loadLevel(entry);
+      final SimulationLevel level = await runWithMascot(
+        context,
+        () => ref.read(levelRepositoryProvider).loadLevel(entry),
+        caption: 'ARMING THE RUN',
+      );
       await navigator.push(
         MaterialPageRoute<void>(
           builder: (_) => LevelScreen(level: level, mode: _mode),

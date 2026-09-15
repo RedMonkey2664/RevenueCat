@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../app/widgets/mascot.dart';
 import '../../../core/market/bar_interval.dart';
 import '../../../core/market/candle.dart';
 import '../../../core/market/instrument.dart';
@@ -32,8 +33,7 @@ class CustomSimSetupScreen extends ConsumerStatefulWidget {
       _CustomSimSetupScreenState();
 }
 
-class _CustomSimSetupScreenState
-    extends ConsumerState<CustomSimSetupScreen> {
+class _CustomSimSetupScreenState extends ConsumerState<CustomSimSetupScreen> {
   Instrument? _instrument;
   BarInterval _interval = BarInterval.d1;
   SimulationMode _mode = SimulationMode.advanced;
@@ -47,13 +47,13 @@ class _CustomSimSetupScreenState
   /// The presets that make the common case one tap.
   static const List<({String label, Duration back})> _presets =
       <({String label, Duration back})>[
-    (label: '1 month', back: Duration(days: 30)),
-    (label: '3 months', back: Duration(days: 91)),
-    (label: '6 months', back: Duration(days: 182)),
-    (label: '1 year', back: Duration(days: 365)),
-    (label: '2 years', back: Duration(days: 730)),
-    (label: '5 years', back: Duration(days: 1826)),
-  ];
+        (label: '1 month', back: Duration(days: 30)),
+        (label: '3 months', back: Duration(days: 91)),
+        (label: '6 months', back: Duration(days: 182)),
+        (label: '1 year', back: Duration(days: 365)),
+        (label: '2 years', back: Duration(days: 730)),
+        (label: '5 years', back: Duration(days: 1826)),
+      ];
 
   @override
   void initState() {
@@ -146,8 +146,10 @@ class _CustomSimSetupScreenState
     final NavigatorState navigator = Navigator.of(context);
 
     try {
-      final BarInterval native =
-          service.nativeIntervalFor(instrument, _interval);
+      final BarInterval native = service.nativeIntervalFor(
+        instrument,
+        _interval,
+      );
       final Duration cap = service.maxHistoryFor(instrument, native);
       final DateTime earliest = _to.subtract(cap);
 
@@ -159,11 +161,12 @@ class _CustomSimSetupScreenState
         );
       }
 
-      final List<Candle> bars = await service.history(
-        instrument,
-        interval: native,
-        from: _from,
-        to: _to,
+      final List<Candle> bars = await runWithMascot(
+        context,
+        () =>
+            service.history(instrument, interval: native, from: _from, to: _to),
+        caption: 'FETCHING THE TAPE',
+        detail: service.sourceLabelFor(instrument),
       );
 
       final SimulationLevel level = CustomSimBuilder.build(
@@ -228,10 +231,7 @@ class _CustomSimSetupScreenState
             child: instrument == null
                 ? Text(
                     'Choose an instrument',
-                    style: AppText.body(
-                      size: 14,
-                      color: AppColors.textFaint,
-                    ),
+                    style: AppText.body(size: 14, color: AppColors.textFaint),
                   )
                 : Row(
                     children: <Widget>[
@@ -278,7 +278,8 @@ class _CustomSimSetupScreenState
               for (final ({String label, Duration back}) p in _presets)
                 _Pill(
                   label: p.label,
-                  selected: _to.difference(_from).inDays == p.back.inDays &&
+                  selected:
+                      _to.difference(_from).inDays == p.back.inDays &&
                       _to == _today(),
                   onTap: () => _applyPreset(p.back),
                 ),
@@ -337,10 +338,7 @@ class _CustomSimSetupScreenState
                     title: Text(m.label, style: AppText.body(size: 13)),
                     subtitle: Text(
                       m.blurb,
-                      style: AppText.body(
-                        size: 11,
-                        color: AppColors.textFaint,
-                      ),
+                      style: AppText.body(size: 11, color: AppColors.textFaint),
                     ),
                   ),
               ],
@@ -400,7 +398,7 @@ class _CustomSimSetupScreenState
           Text(
             'Prices are real and fetched live'
             '${instrument == null ? '' : ' from '
-                '${service.sourceLabelFor(instrument)}'}. '
+                      '${service.sourceLabelFor(instrument)}'}. '
             'The trading is simulated with ₹1,00,000 of virtual capital — no '
             'orders are placed anywhere.',
             style: AppText.body(size: 11, color: AppColors.textFaint),
@@ -412,9 +410,9 @@ class _CustomSimSetupScreenState
   }
 
   Widget _section(String label) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: Text(label, style: AppText.label()),
-      );
+    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    child: Text(label, style: AppText.label()),
+  );
 
   Widget _dateLabel(String label, DateTime date) {
     return Column(
@@ -433,8 +431,18 @@ class _CustomSimSetupScreenState
   }
 
   static const List<String> _months = <String>[
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 }
 
@@ -483,10 +491,7 @@ class _Pill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 9,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.accent.withValues(alpha: 0.14)

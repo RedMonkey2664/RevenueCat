@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets/mascot.dart';
 import '../../core/services/progress_service.dart';
 
 /// Whether onboarding has been completed on this device.
@@ -12,8 +13,7 @@ class OnboardingNotifier extends Notifier<bool> {
   static const String _key = 'mn.onboarding.seen.v1';
 
   @override
-  bool build() =>
-      ref.watch(sharedPreferencesProvider).getBool(_key) ?? false;
+  bool build() => ref.watch(sharedPreferencesProvider).getBool(_key) ?? false;
 
   Future<void> complete() async {
     state = true;
@@ -42,28 +42,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const List<_Slide> _slides = <_Slide>[
     _Slide(
       icon: Icons.candlestick_chart,
+      mascot: MascotClip.welcome,
       title: 'Survive real crashes.',
-      body: 'You are dropped into a real historical market drawdown with the '
+      body:
+          'You are dropped into a real historical market drawdown with the '
           'asset and the dates hidden, and asked what you would do. You are '
           'graded on discipline, not on luck.',
-      disclaimer: 'Every run uses ₹1,00,000 of virtual capital. No real '
+      disclaimer:
+          'Every run uses ₹1,00,000 of virtual capital. No real '
           'money, no real trading, no brokerage account, ever.',
     ),
     _Slide(
       icon: Icons.swap_vert_circle_outlined,
       title: 'One call a day.',
-      body: 'A single yes/no question on Bitcoin each morning, then see how '
+      body:
+          'A single yes/no question on Bitcoin each morning, then see how '
           'the crowd voted and whether you had the nerve to disagree.',
-      disclaimer: 'Correct calls earn Discipline Points — an in-app score '
+      disclaimer:
+          'Correct calls earn Discipline Points — an in-app score '
           'only. Points are not money and can never be withdrawn, exchanged '
           'or cashed out.',
     ),
     _Slide(
       icon: Icons.history_toggle_off,
       title: 'What did waiting cost you?',
-      body: 'Look up what an amount would have become if it had gone into '
+      body:
+          'Look up what an amount would have become if it had gone into '
           'Bitcoin on a past date, and share the result.',
-      disclaimer: 'Those figures are illustrative and retrospective — real '
+      disclaimer:
+          'Those figures are illustrative and retrospective — real '
           'past prices, not a forecast. Nothing in this app is investment '
           'advice, and no future return is implied or guaranteed.',
     ),
@@ -116,9 +123,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: FilledButton(
                       onPressed: () {
                         if (_isLast) {
-                          ref
-                              .read(onboardingSeenProvider.notifier)
-                              .complete();
+                          ref.read(onboardingSeenProvider.notifier).complete();
                         } else {
                           _controller.nextPage(
                             duration: const Duration(milliseconds: 220),
@@ -161,12 +166,16 @@ class _Slide {
     required this.title,
     required this.body,
     required this.disclaimer,
+    this.mascot,
   });
 
   final IconData icon;
   final String title;
   final String body;
   final String disclaimer;
+
+  /// A mascot clip that replaces the icon — the first slide's hello.
+  final MascotClip? mascot;
 }
 
 class _SlideView extends StatelessWidget {
@@ -176,47 +185,76 @@ class _SlideView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Icon(slide.icon, size: 44, color: AppColors.accent),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            slide.title,
-            style: AppText.body(size: 28, weight: FontWeight.w600),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            slide.body,
-            style: AppText.body(
-              size: 15,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.simulatedBadge.withValues(alpha: 0.08),
-              border: Border.all(
-                color: AppColors.simulatedBadge.withValues(alpha: 0.45),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints box) {
+        // The mascot takes what the copy leaves, and the slide scrolls rather
+        // than clips if a small phone leaves too little.
+        final double mascotWidth = ((box.maxHeight - 400) * 9 / 16).clamp(
+          96.0,
+          170.0,
+        );
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: (box.maxHeight - AppSpacing.lg * 2).clamp(
+                0.0,
+                double.infinity,
               ),
             ),
-            child: Text(
-              slide.disclaimer,
-              style: AppText.body(
-                size: 12,
-                color: AppColors.simulatedBadge,
-                height: 1.45,
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  if (slide.mascot != null)
+                    Center(
+                      child: MascotVideo(
+                        clip: slide.mascot!,
+                        frame: MascotFrame.bare,
+                        size: mascotWidth,
+                      ),
+                    )
+                  else
+                    Icon(slide.icon, size: 44, color: AppColors.accent),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    slide.title,
+                    style: AppText.body(size: 28, weight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    slide.body,
+                    style: AppText.body(
+                      size: 15,
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.simulatedBadge.withValues(alpha: 0.08),
+                      border: Border.all(
+                        color: AppColors.simulatedBadge.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: Text(
+                      slide.disclaimer,
+                      style: AppText.body(
+                        size: 12,
+                        color: AppColors.simulatedBadge,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
