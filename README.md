@@ -1,181 +1,256 @@
 # Market Nerve
 
-A behavioural finance simulator. You live through real market crashes, fast-forwarded,
-and make the call at each pause point — hold, sell or buy the dip — then get graded on
-discipline against what actually happened.
+## What is it?
+
+Market Nerve is a behavioural finance simulator for iOS and Android. You live through
+real market crashes, fast-forwarded. At each pause point you make the call: hold, sell,
+or buy the dip. Afterwards the app scores your discipline against what actually happened.
+
+Most people think they'd hold through a crash. Market Nerve lets you find out, with
+virtual capital, before it matters.
 
 **No real money anywhere, ever.** The Simulator trades virtual capital. Live Markets
-shows real prices and cannot place an order. The Daily Pivot pays in-app Discipline
+shows real prices but can't place an order. The Daily Pivot pays in-app Discipline
 Points only.
 
-Built with Flutter for iOS and Android, for RevenueCat Shipaton 2026. A web preview
-is deployed on Vercel: <https://revenue-cat-redmonkey2664s-projects.vercel.app>.
+Built for RevenueCat Shipaton 2026.
 
-## What's in the app
+## Features
 
-| Pillar | What it does | Status |
-|---|---|---|
-| **Behavioural Simulator** | Campaign of historical crash replays with scripted pause points, a Debrief that scores your Discipline against the optimal move, and Endless mode over random historical windows. One engine; levels are data. | Built. 17 playable campaign levels (2 free, 15 Pro). Endless runs on the bundled crypto history pool. Custom Simulation replays any instrument, range and timeframe from live data. |
-| **Daily Pivot** | One yes/no question a day: "Will BTC close above $X today?" Strike at 09:00 IST, resolved at 17:00 IST against Binance. | Client built. The crowd split is a **labelled local placeholder**. Not built: the Firestore backend, the two Cloud Functions, the 9:00/17:00 notifications. |
-| **Time Machine** | "What if I had invested…" compounding calculator with a shareable result card. No login needed. | Built. |
-| **Live Markets** | Watchlist of real prices across US equity, Indian equity and crypto, each opening a full interactive chart. Read only. | Built. Kotak Neo (real-time NSE/BSE) is present in outline but not finished. |
+**Behavioural Simulator**
+- **Campaign:** 17 playable historical crashes across US, Indian and crypto markets
+  (2 free, 15 Pro). You play each one blind; the crash is named only after you've
+  cleared it.
+- **Pause points:** the tape stops at scripted moments, you pick Hold, Sell All or Buy
+  the Dip, and there's no timer.
+- **Debrief:** a Discipline Score out of 100 compared with the historically optimal
+  move, with a call-by-call breakdown and P&L.
+- **Endless:** random windows you've never seen, drawn from bundled price history.
+- **Custom Simulation:** any instrument, any date range, any timeframe, from live data.
 
-Around the pillars: onboarding, the Nerve Profile (with a share card), the Pro paywall,
-and a shared pro chart (pan/zoom, crosshair, four chart types, six indicators, three
-drawing tools) used by every screen that draws prices.
+**Daily Pivot**
+- One question a day: "Will BTC close above $X today?" Strike at 09:00 IST,
+  resolved at 17:00 IST against Binance.
+- One sealed vote; streaks; bonus points for a correct call against the crowd.
 
-The UI follows the September 2026 wireframe set: a cyan tactical HUD theme with
-bundled Inter and JetBrains Mono fonts.
+**Time Machine**
+- A "what if I had invested…" compounding calculator with a shareable result card.
+  No login.
 
-## Getting started
+**Live Markets**
+- A watchlist of real prices across US equity, Indian equity and crypto. Each opens a
+  full interactive chart.
+- Read only. Every price shows its source and whether it's delayed.
 
-Requires a Flutter stable release with Dart ≥ 3.11.1.
+**Also**
+- **Nerve Profile:** a five-axis read of how you trade under stress, with a share card.
+- **Pro chart:** pan/zoom, crosshair, four chart types, six indicators and three drawing
+  tools, shared by every screen that draws prices.
+- **Mascot:** a black kitten in a pearl-and-sapphire tiara on the loading screens, the
+  first onboarding slide and the boot splash.
+
+**Not built yet:** the Daily Pivot's shared crowd backend (the crowd split is a labelled
+local placeholder), the Pivot's 09:00 and 17:00 notifications, and real-time NSE/BSE
+through Kotak Neo.
+
+## Tech Stack
+
+| Area | Choice |
+|---|---|
+| App | Flutter, Dart ≥ 3.11.1, one codebase for iOS and Android |
+| State | Riverpod 3 (`flutter_riverpod`) |
+| Charts | A custom `CustomPainter` chart engine (`lib/features/chart/`) |
+| Storage | `shared_preferences`: progress, scores, run history |
+| Purchases | RevenueCat (`purchases_flutter` 10.10.1) |
+| Media | `video_player` for the mascot clips; `share_plus` for share cards |
+| Networking | `http`, calling public market APIs at runtime |
+| Market data | Binance (crypto, real time); Yahoo Finance (US and Indian equity, delayed) |
+| Fonts | Inter and JetBrains Mono, bundled |
+| Web preview | Static Flutter web build hosted on Vercel |
+
+Declared but not used yet: Firebase (Firestore and Cloud Functions, planned for the
+Pivot crowd backend) and `flutter_local_notifications` (planned for Pivot reminders).
+
+## Installation
+
+You need:
+- A Flutter stable release with Dart ≥ 3.11.1
+- Xcode (for iOS) or Android Studio with an Android SDK (for Android)
+- A device or emulator
 
 ```sh
+git clone https://github.com/RedMonkey2664/RevenueCat.git
+cd RevenueCat
 flutter pub get
-flutter run
 ```
 
-That runs the full app with the store disconnected (see below). To try purchases,
-add RevenueCat keys first.
+That's enough to run the app with the store disconnected. To enable purchases, add
+RevenueCat keys (see [RevenueCat integration](#revenuecat-integration)).
 
-### Checks
+## Running locally
+
+**On a phone or emulator:**
+
+```sh
+flutter run                                                  # store disconnected
+flutter run --dart-define-from-file=config/revenuecat.json   # with RevenueCat
+```
+
+**In a browser.** Firebase doesn't compile for web on this Dart SDK, so build with the
+publish script, which leaves Firebase out, then serve the output folder:
+
+```sh
+bash tool/publish_web.sh
+python -m http.server 8080 --directory web_dist              # open http://localhost:8080
+```
+
+`flutter pub get` adds the Firebase packages back into `pubspec.lock`, so restore the
+committed lock (`git checkout -- pubspec.lock`) before committing.
+
+What doesn't work in a browser:
+- **US and Indian equity quotes:** Yahoo sends no CORS header.
+- **File sharing and local notifications.**
+
+Everything else works, including the Simulator, Time Machine and crypto prices.
+
+**Checks:**
 
 ```sh
 flutter analyze
 flutter test
 ```
 
-`tool/screens/capture_test.dart` is a visual QA harness that renders screens to images.
+## RevenueCat integration
 
-## Pro and RevenueCat
+RevenueCat powers the **Market Nerve Pro** subscription: yearly or monthly. Pro
+unlocks the 15 Pro campaign levels and the Nerve Profile's full report. Everything else
+stays free.
 
-Pro is sold through the RevenueCat SDK (`purchases_flutter`), behind one interface:
-`PurchasesService` in [lib/core/services/purchases_service.dart](lib/core/services/purchases_service.dart).
-Pro unlocks the Pro campaign levels (a PRO node on the map, or NEXT LEVEL into one) and
-the Nerve Profile's full report.
+**How it's wired**
+- The app talks to the store through one interface, `PurchasesService`
+  ([purchases_service.dart](lib/core/services/purchases_service.dart)).
+- `RevenueCatPurchasesService`
+  ([revenuecat_service.dart](lib/core/services/revenuecat_service.dart)) implements it on
+  `purchases_flutter`. It's configured in `main()` before the app starts.
+- **Prices** come from the current offering's **Annual** and **Monthly** packages,
+  exactly as the store formats them.
+- **Purchase and restore** go through the SDK. Cancelling the store sheet just closes it;
+  real errors show a readable message.
+- **Pro** means the **`pro`** entitlement is active. A customer-info listener pushes
+  renewals, expiries and purchases made on other devices to every locked screen.
+- **Without a key** for the platform, or if configuring fails, the app falls back to
+  `StoreNotConnectedService`. The paywall then says the store isn't connected and offers
+  a clearly labelled preview unlock, for that session only. The web preview and the
+  tests run this way.
 
-- **With a key for the platform**, `RevenueCatPurchasesService`
-  ([revenuecat_service.dart](lib/core/services/revenuecat_service.dart)) is configured
-  at startup. The paywall shows the store's real prices from the current offering's
-  Annual and Monthly packages; purchase and restore go through the SDK; Pro is the `pro`
-  entitlement; renewals and expiries reach every gate as they happen.
-- **Without a key** (the web preview, the tests, a fresh clone), the app runs on
-  `StoreNotConnectedService`: no prices, no purchase, and a clearly labelled
-  "PREVIEW BUILD · CONTINUE WITHOUT PRO" option that unlocks Pro for the session only.
-  That option disappears on its own once a store is connected.
-
-Keys are RevenueCat's public SDK keys, passed at build time and kept out of git:
+**Keys.** These are RevenueCat's public SDK keys, passed at build time and kept out of
+git:
 
 ```sh
 cp config/revenuecat.example.json config/revenuecat.json   # then fill in the keys
-flutter run --dart-define-from-file=config/revenuecat.json
 ```
 
-| Key | Used on |
+| Key | Platform |
 |---|---|
 | `RC_APPLE_KEY` | iOS, macOS |
 | `RC_GOOGLE_KEY` | Android |
-| `RC_WEB_KEY` | Web (RevenueCat Web Billing) |
+| `RC_WEB_KEY` | Web (needs RevenueCat Web Billing) |
 | `RC_TEST_KEY` | Every platform, overriding the others. Development only. Never ship it. |
 
-The RevenueCat dashboard needs a `pro` entitlement, with the store products attached,
-and a current offering holding an Annual and a Monthly package. Full setup is in
-[MONETIZATION.md](MONETIZATION.md).
+**Dashboard setup**
+1. Add the App Store app (`com.marketnerve.marketNerve`) and the Play Store app
+   (`com.marketnerve.market_nerve`), with their store credentials.
+2. Import the monthly and yearly subscription products from both stores.
+3. Create the entitlement `pro` and attach every product to it.
+4. Create an offering, mark it **Current**, and add an **Annual** package and a
+   **Monthly** package. The app ignores custom package types.
 
-## Data
+The full checklist, including store products, sandbox testing and review requirements,
+is in [MONETIZATION.md](MONETIZATION.md).
 
-- **Campaign levels** are bundled JSON in `data/simulator_levels/`, one price file
-  and one script file per level, indexed by `level_manifest.json`. Prices, dates and
-  optimal actions are computed from real series by `tool/import_yahoo_level.dart` and
-  `tool/import_binance_level.dart`. Nothing is typed by hand.
-- **Endless** draws windows from `data/simulator_endless/`, built by
-  `tool/build_history_pool.dart`.
-- **Live data** is fetched at runtime, never bundled: Binance for crypto (real time),
-  Yahoo for US and Indian equity (delayed). Every live number shows its source.
+## Architecture
 
-> **Licence status.** None of the bundled level data is cleared to ship in a published
-> app yet. Every sourced level is marked `licence: unverified` in the manifest. Yahoo's
-> terms forbid redistribution, and Binance's terms still need a read. The levels are
-> fine for development and demos. See [LEVELS.md](LEVELS.md).
-
-## Mascot
-
-A black kitten with a pearl-and-sapphire tiara appears in loading states (the
-`MascotLoader` and `runWithMascot` helpers in `lib/app/widgets/mascot.dart`), on the
-first onboarding slide, and on the web boot splash, which stays up for at least 5
-seconds.
-
-Only the finished, keyed clips listed in `pubspec.yaml` are bundled: currently
-`loading.mp4` and `welcome.mp4`. Raw exports in `assets/mascot/` are keyed onto the app
-background by `tool/mascot/key_clip.py` before they ship. The planned clips, their
-placements and their generation prompts are in [MASCOT.md](MASCOT.md).
-
-## Web preview
-
-The product ships on iOS and Android; the web build is a preview. Vercel has no Flutter
-runtime, so the bundle is built locally and committed:
-
-```sh
-bash tool/publish_web.sh      # builds into web_dist/
-git add web_dist && git commit -m "Update web preview" && git push
+```mermaid
+flowchart TD
+  UI["Feature screens<br/>simulator · daily_pivot · time_machine · live_market<br/>paywall · profile · onboarding"]
+  Shared["Shared UI<br/>app/ theme, router, HUD widgets, mascot<br/>features/chart/ pro chart"]
+  Services["core/services<br/>progress · run history · purchases"]
+  Market["core/market<br/>MarketDataService: routing, caching, de-duplication"]
+  Data["Bundled data<br/>data/simulator_levels · data/simulator_endless"]
+  RC["RevenueCat SDK"]
+  Live["Binance · Yahoo · Kotak Neo (unfinished)"]
+  UI --> Shared
+  UI --> Services
+  UI --> Market
+  UI --> Data
+  Services --> RC
+  Market --> Live
 ```
 
-Pushing to `main` deploys via Vercel's Git integration.
-
-What doesn't work in a browser:
-- **US and Indian equity quotes:** Yahoo sends no CORS header.
-- **File sharing and local notifications.**
-- **Purchases,** unless a web key is set.
-
-What does work: the Simulator, Time Machine, and the crypto side of Live Markets and
-the Custom Simulation.
-
-The script removes Firebase from the web build, because `firebase_core_web` doesn't
-compile against this Dart SDK. `flutter pub get` adds the Firebase packages back into
-`pubspec.lock`, so restore the committed lock (`git checkout -- pubspec.lock`) before
-committing.
-
-## Project layout
+Principles:
+- **One Simulator engine.** Every campaign level, Endless window and Custom Simulation
+  runs through `features/simulator/engine/`. A level is data, not code.
+- **Sourced numbers only.** Level prices, dates and optimal moves are computed from real
+  price series by `tool/import_yahoo_level.dart` and `tool/import_binance_level.dart`.
+  Nothing is typed by hand.
+- **Seams at the edges.** Market data sits behind one provider interface and the store
+  behind `PurchasesService`, so tests and the web preview swap them without touching
+  screens.
+- **Separate pillars.** Each pillar has its own feature folder. They share the theme,
+  the chart and the core services, nothing else.
+- **Riverpod throughout,** with `shared_preferences` loaded once at startup and injected.
 
 ```
 lib/
-  app/            theme, router, phone frame, shared HUD widgets, mascot
-  core/           market data providers, indicators, services (progress, purchases)
-  features/
-    simulator/    engine, campaign, level, debrief, endless, custom simulation
-    daily_pivot/  pivot client, scoring, placeholder backend
-    time_machine/ calculator and share card
-    live_market/  watchlist and instrument detail
-    chart/        the shared pro chart
-    onboarding/  paywall/  profile/
-data/             bundled campaign levels and Endless pools
+  app/            theme, router, phone frame, HUD widgets, mascot
+  core/           market data providers, indicators, services
+  features/       simulator, daily_pivot, time_machine, live_market, chart,
+                  onboarding, paywall, profile
+data/             bundled campaign levels and Endless history pools
 tool/             data importers, web publish script, mascot keying, screen capture
 test/             unit and widget tests
 ```
 
-## Docs
+Design and spec docs: [ARCHITECTURE.md](ARCHITECTURE.md), [ENGINE.md](ENGINE.md),
+[LEVELS.md](LEVELS.md), [DAILY_PIVOT.md](DAILY_PIVOT.md),
+[TIME_MACHINE.md](TIME_MACHINE.md), [DESIGN.md](DESIGN.md),
+[MONETIZATION.md](MONETIZATION.md), [MASCOT.md](MASCOT.md), [ROADMAP.md](ROADMAP.md).
 
-| File | Covers |
-|---|---|
-| [CLAUDE.md](CLAUDE.md) | Product scope, the stack, non-negotiables |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Code structure and backend design |
-| [ENGINE.md](ENGINE.md) | The Simulator engine and scoring |
-| [LEVELS.md](LEVELS.md) | Campaign levels, sourcing and licensing |
-| [DAILY_PIVOT.md](DAILY_PIVOT.md) | Daily Pivot rules and what's built |
-| [TIME_MACHINE.md](TIME_MACHINE.md) | Time Machine spec |
-| [DESIGN.md](DESIGN.md) | Visual system and labelling rules |
-| [MONETIZATION.md](MONETIZATION.md) | Pro tier and RevenueCat setup |
-| [MASCOT.md](MASCOT.md) | Mascot pipeline and clip prompts |
-| [ROADMAP.md](ROADMAP.md) | Build phases and the cut list |
+## Screenshots
 
-## Before store submission
+<p align="center">
+  <img src="docs/screenshots/campaign.png" width="200" alt="Campaign home: stats, Custom Simulation, Endless and the mission map">
+  <img src="docs/screenshots/pause_point.png" width="200" alt="A pause point: the tape halts mid-crash and asks Hold, Sell All or Buy the Dip">
+  <img src="docs/screenshots/debrief.png" width="200" alt="Debrief: Discipline Score, P&L, calls and the breakdown">
+  <img src="docs/screenshots/paywall.png" width="200" alt="Market Nerve Pro paywall, shown here with no store connected">
+  <img src="docs/screenshots/share_card.png" width="200" alt="Nerve Profile share card">
+</p>
 
-Still open (see [ROADMAP.md](ROADMAP.md), Phase 8):
-- RevenueCat dashboard setup and public keys; a sandbox purchase test on both platforms.
-- Terms of Use and Privacy Policy pages, linked from the paywall.
-- Release signing for Android (release builds currently use the debug key), the launcher
-  label (currently `market_nerve`), and an app icon to replace the default Flutter one.
-- Store screenshots and the demo video.
-- The Daily Pivot backend and notifications.
-- Clearing data licences for the bundled levels.
+Left to right:
+1. Campaign home
+2. A pause point
+3. The Debrief
+4. The Pro paywall, with no store connected, so no prices
+5. The Nerve Profile share card
+
+Rendered from the app by `tool/screens/capture_test.dart`
+(`MN_SHOTS_DIR=build/screens flutter test tool/screens/capture_test.dart`). Level
+screens use real bundled level data. The progress, scores and run history are sample
+values.
+
+## Demo
+
+- **Web preview:** <https://revenue-cat-redmonkey2664s-projects.vercel.app>. The product
+  ships on iOS and Android; this is the same app as a web build, with the limits listed
+  under [Running locally](#running-locally).
+- **Demo video:** not recorded yet.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+The MIT licence covers this repository's source code. It doesn't cover:
+- **The fonts,** Inter and JetBrains Mono, which are under the SIL Open Font License
+  (see `assets/fonts/OFL.txt`).
+- **The bundled market data** in `data/`, which comes from third-party providers.
+  Its redistribution rights are **not yet verified**; see [LEVELS.md](LEVELS.md).
