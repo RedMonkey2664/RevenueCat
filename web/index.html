@@ -108,7 +108,12 @@
         video.removeAttribute('autoplay');
         video.pause();
       }
-      window.addEventListener('flutter-first-frame', function () {
+      // The splash holds for at least this long from the start of page load,
+      // even when the app is ready sooner, so the loading animation is seen
+      // rather than flashed. performance.now() counts from navigation start.
+      var MIN_SPLASH_MS = 5000;
+
+      function dismiss() {
         var splash = document.getElementById('mn-splash');
         if (!splash) return;
         splash.classList.add('done');
@@ -118,6 +123,10 @@
           video.load();
           splash.remove();
         }, 450);
+      }
+
+      window.addEventListener('flutter-first-frame', function () {
+        setTimeout(dismiss, Math.max(0, MIN_SPLASH_MS - performance.now()));
       });
     })();
   </script>
