@@ -1,17 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The Pro subscription, behind one small interface (MONETIZATION.md).
 ///
-/// PHASE 8 IS STILL OPEN. RevenueCat needs the dashboard app, the `pro`
-/// entitlement and the platform API keys before `purchases_flutter` can be
-/// configured, and none of those exist yet. Until they do, the app runs on
-/// [StoreNotConnectedService], which is honest about it: no prices, no
-/// purchase, no restore — the paywall shows its unloaded state and says the
-/// store is not connected, rather than a price it cannot charge.
+/// The live implementation is RevenueCat (`revenuecat_service.dart`),
+/// configured at startup from the public SDK key for the platform. A build
+/// with no key — the web preview, a test, a developer without a RevenueCat
+/// project — runs on [StoreNotConnectedService], which is honest about it:
+/// no prices, no purchase, no restore, and the paywall says the store is not
+/// connected rather than showing a price it cannot charge.
 ///
-/// Swapping in the RevenueCat implementation is a change to
-/// [purchasesServiceProvider] only; nothing else in the app talks to a store.
+/// Nothing else in the app talks to a store.
 enum ProPlan { yearly, monthly }
 
 @immutable
@@ -29,6 +30,16 @@ class PlanPrice {
 
   /// The yearly plan's monthly equivalent, as the store reports it.
   final String? perMonthLabel;
+}
+
+/// A purchase or restore the store refused, worded for the player.
+class PurchaseFailure implements Exception {
+  const PurchaseFailure(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 class StoreUnavailableException implements Exception {
@@ -52,9 +63,13 @@ abstract class PurchasesService {
   Future<bool> restore();
 
   Future<bool> hasPro();
+
+  /// Emits the `pro` entitlement whenever the store reports a change —
+  /// a renewal, an expiry, a purchase finished on another device.
+  Stream<bool> get proChanges;
 }
 
-/// The pre-RevenueCat build. Everything that would touch a store refuses.
+/// A build with no RevenueCat key. Everything that would touch a store refuses.
 class StoreNotConnectedService implements PurchasesService {
   const StoreNotConnectedService();
 
@@ -74,6 +89,9 @@ class StoreNotConnectedService implements PurchasesService {
 
   @override
   Future<bool> hasPro() async => false;
+
+  @override
+  Stream<bool> get proChanges => const Stream<bool>.empty();
 }
 
 final Provider<PurchasesService> purchasesServiceProvider =
@@ -111,6 +129,13 @@ class ProAccessNotifier extends Notifier<ProAccess> {
   ProAccess build() {
     final PurchasesService service = ref.watch(purchasesServiceProvider);
     if (service.isConfigured) {
+      final StreamSubscription<bool> changes = service.proChanges.listen(
+        (bool pro) => state = ProAccess(
+          purchased: pro,
+          previewUnlocked: state.previewUnlocked,
+        ),
+      );
+      ref.onDispose(changes.cancel);
       service.hasPro().then((bool pro) {
         if (pro) {
           state = ProAccess(

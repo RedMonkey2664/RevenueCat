@@ -49,9 +49,9 @@ value across all of them without feeling scattered.
 
 ## As built (Sep 2026)
 
-- `PurchasesService` is the one seam to the store; the app ships
-  `StoreNotConnectedService` until RevenueCat's dashboard app, `pro`
-  entitlement and platform keys exist (Phase 8). With no store the paywall
+- `PurchasesService` is the one seam to the store. A build with a RevenueCat
+  key runs `RevenueCatPurchasesService` (next section); a build without one
+  runs `StoreNotConnectedService`. With no store the paywall
   shows its unloaded state — "₹ ———" and "STORE NOT CONNECTED IN THIS BUILD" —
   CONTINUE is disabled, and Restore is absent rather than inert.
 - Gate points: the campaign level loader (a PRO node, or NEXT LEVEL into
@@ -63,3 +63,34 @@ value across all of them without feeling scattered.
   only. It exists so the demo is not a locked door, and it disappears on its
   own the moment `isConfigured` is true.
 - Terms and Privacy links are absent until their URLs exist.
+
+## RevenueCat is wired (Sep 2026)
+
+`lib/core/services/revenuecat_service.dart` implements `PurchasesService` on
+`purchases_flutter`. It is configured at startup when the build carries a
+public SDK key for the platform, and falls back to the unconnected store when
+it does not — so the web preview and the tests behave exactly as before.
+
+**Dashboard setup (once):**
+1. Create the project and add the iOS app and/or the Android app.
+2. Create the entitlement **`pro`** (the only id the code checks).
+3. Create the products in App Store Connect / Play Console, import them, and
+   attach both to `pro`.
+4. Make the **current** offering hold an **Annual** package (the paywall's
+   YEARLY) and a **Monthly** package (MONTHLY). Prices come from the store.
+5. For judges (Shipaton rule): a free trial on the product, or promo codes.
+
+**Keys:** copy `config/revenuecat.example.json` to `config/revenuecat.json`
+(gitignored), fill in the public keys, and build with
+`--dart-define-from-file=config/revenuecat.json`. `RC_TEST_KEY` (RevenueCat's
+Test Store key) overrides every platform for development and must never be in
+a shipped build.
+
+With a key present the paywall shows real prices, CONTINUE buys the selected
+plan, Restore appears, and the preview "continue without Pro" button
+disappears on its own. Entitlement changes (renewal, expiry, a purchase on
+another device) reach every Pro gate through `proChanges`.
+
+Still to add before store review: Terms of Use and Privacy Policy links on
+the paywall (Apple requires both on a subscription screen) — they need real
+URLs first.

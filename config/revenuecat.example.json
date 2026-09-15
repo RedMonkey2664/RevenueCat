@@ -1,0 +1,6 @@
+{
+  "RC_APPLE_KEY": "appl_your_public_ios_key",
+  "RC_GOOGLE_KEY": "goog_your_public_android_key",
+  "RC_WEB_KEY": "",
+  "RC_TEST_KEY": ""
+}

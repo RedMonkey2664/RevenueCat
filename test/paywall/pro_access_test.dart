@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:market_nerve/core/services/purchases_service.dart';
+import 'package:market_nerve/core/services/revenuecat_service.dart';
 
 class _ConnectedStore implements PurchasesService {
   @override
@@ -17,6 +20,17 @@ class _ConnectedStore implements PurchasesService {
 
   @override
   Future<bool> hasPro() async => false;
+
+  @override
+  Stream<bool> get proChanges => const Stream<bool>.empty();
+}
+
+/// A connected store whose entitlement the test can flip.
+class _LiveStore extends _ConnectedStore {
+  final StreamController<bool> changes = StreamController<bool>();
+
+  @override
+  Stream<bool> get proChanges => changes.stream;
 }
 
 void main() {
@@ -53,5 +67,31 @@ void main() {
       throwsA(isA<StoreUnavailableException>()),
     );
     expect(store.restore(), throwsA(isA<StoreUnavailableException>()));
+  });
+
+  test(
+    'with no RevenueCat key in the build, the store stays unconnected',
+    () async {
+      final PurchasesService store = await RevenueCatPurchasesService.connect();
+      expect(store.isConfigured, isFalse);
+    },
+  );
+
+  test('a store-side entitlement change reaches every Pro gate', () async {
+    final _LiveStore store = _LiveStore();
+    final ProviderContainer c = ProviderContainer(
+      overrides: [purchasesServiceProvider.overrideWithValue(store)],
+    );
+    addTearDown(c.dispose);
+
+    expect(c.read(proAccessProvider).hasPro, isFalse);
+    store.changes.add(true);
+    await Future<void>.delayed(Duration.zero);
+    expect(c.read(proAccessProvider).hasPro, isTrue);
+
+    // An expiry takes it away again.
+    store.changes.add(false);
+    await Future<void>.delayed(Duration.zero);
+    expect(c.read(proAccessProvider).hasPro, isFalse);
   });
 }

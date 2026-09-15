@@ -8,6 +8,8 @@ import 'app/router.dart';
 import 'app/theme.dart';
 import 'app/widgets/hud.dart';
 import 'core/services/progress_service.dart';
+import 'core/services/purchases_service.dart';
+import 'core/services/revenuecat_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,9 +31,17 @@ Future<void> main() async {
   // here and injected rather than being an AsyncValue every screen unwraps.
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+  // RevenueCat, if this build carries a key for the platform. It falls back
+  // to the unconnected store rather than failing, so a missing key can
+  // never stop the app from starting.
+  final PurchasesService purchases = await RevenueCatPurchasesService.connect();
+
   runApp(
     ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        purchasesServiceProvider.overrideWithValue(purchases),
+      ],
       child: const MarketNerveApp(),
     ),
   );
@@ -48,9 +58,8 @@ class MarketNerveApp extends StatelessWidget {
       theme: buildAppTheme(),
       // Wraps the navigator, so pushed routes and dialogs are framed too —
       // and so the scanline glass sits over every one of them.
-      builder: (BuildContext context, Widget? child) => PhoneFrame(
-        child: Scanlines(child: child ?? const SizedBox.shrink()),
-      ),
+      builder: (BuildContext context, Widget? child) =>
+          PhoneFrame(child: Scanlines(child: child ?? const SizedBox.shrink())),
       home: const AppRoot(),
     );
   }
