@@ -1,9 +1,9 @@
 import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/market/candle.dart';
-import 'package:market_nerve/features/chart/model/chart_types.dart';
-import 'package:market_nerve/features/chart/model/chart_viewport.dart';
+import 'package:histox/core/market/candle.dart';
+import 'package:histox/features/chart/model/chart_types.dart';
+import 'package:histox/features/chart/model/chart_viewport.dart';
 
 List<Candle> series(int n, {double start = 100}) => <Candle>[
       for (int i = 0; i < n; i++)

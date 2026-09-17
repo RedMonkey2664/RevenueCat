@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/campaign/level_repository.dart'
+import 'package:histox/features/simulator/campaign/level_repository.dart'
     show AssetClass;
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/endless_generator.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/pause_ladder.dart';
-import 'package:market_nerve/features/simulator/engine/script_event_model.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/endless_generator.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/pause_ladder.dart';
+import 'package:histox/features/simulator/engine/script_event_model.dart';
 
 List<Candle> _series(List<double> closes) {
   return <Candle>[

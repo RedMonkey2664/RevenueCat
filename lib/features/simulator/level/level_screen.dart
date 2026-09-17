@@ -135,7 +135,7 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
           revealedAssetName: state.isRevealed
               ? state.level.realAssetName
               : null,
-          stateColor: stateColor,
+          stateColor: run.railColor,
           // Advanced mode swaps the P&L chip for the exposure readout and
           // gains the position/cash split bar (artboard 1d).
           exposure: state.mode.isAdvanced && run != _RunState.idle
@@ -1031,12 +1031,21 @@ enum _RunState {
 
   bool get isHalted => this == _RunState.halted;
 
-  /// cyan nominal, amber for advanced mode's no-safety-net trading, red only
-  /// while halted.
+  /// Orange nominal, amber for advanced mode's no-safety-net trading, red
+  /// only while halted.
   Color get color => switch (this) {
     _RunState.halted => AppColors.down,
     _RunState.advanced => AppColors.caution,
     _ => AppColors.accent,
+  };
+
+  /// The progress rail reads the tape rather than offering an action, so
+  /// while nominal it is cyan — the brand orange is reserved for the title
+  /// and the controls beneath it.
+  Color get railColor => switch (this) {
+    _RunState.halted => AppColors.down,
+    _RunState.advanced => AppColors.caution,
+    _ => AppColors.data,
   };
 
   /// Top-bar title. The halted state names the call number, because "which
@@ -1060,7 +1069,7 @@ enum _RunState {
     _RunState.playing => const StatusPip(
       label: 'LIVE',
       color: AppColors.textSecondary,
-      dotColor: AppColors.accent,
+      dotColor: AppColors.data,
     ),
     _RunState.paused => const StatusPip(
       label: 'PAUSED',

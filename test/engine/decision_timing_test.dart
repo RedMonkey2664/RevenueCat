@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/replay_controller.dart';
-import 'package:market_nerve/features/simulator/engine/script_event_model.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/replay_controller.dart';
+import 'package:histox/features/simulator/engine/script_event_model.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
 
 /// The Nerve Profile's decision-speed trait reads how long the player looked
 /// at a halted tape. That number has to be the real time between the halt and

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/data/sample/dev_sample_level.dart';
-import 'package:market_nerve/features/chart/model/chart_types.dart';
-import 'package:market_nerve/features/chart/pro_chart.dart';
-import 'package:market_nerve/features/chart/widgets/chart_toolbar.dart';
+import 'package:histox/data/sample/dev_sample_level.dart';
+import 'package:histox/features/chart/model/chart_types.dart';
+import 'package:histox/features/chart/pro_chart.dart';
+import 'package:histox/features/chart/widgets/chart_toolbar.dart';
 
 import '../support/level_harness.dart';
 

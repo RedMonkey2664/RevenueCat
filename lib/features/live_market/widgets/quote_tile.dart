@@ -110,7 +110,7 @@ class QuoteTile extends StatelessWidget {
                       size: 19,
                       // Live cyan, delayed amber — the colour itself says how
                       // fresh the number is (artboard 1l).
-                      color: delayed ? AppColors.caution : AppColors.accent,
+                      color: delayed ? AppColors.caution : AppColors.data,
                     ),
                   ),
                 const SizedBox(height: 4),

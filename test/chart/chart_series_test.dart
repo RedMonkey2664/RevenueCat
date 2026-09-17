@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/market/bar_interval.dart';
-import 'package:market_nerve/core/market/candle.dart';
-import 'package:market_nerve/features/chart/model/chart_series.dart';
+import 'package:histox/core/market/bar_interval.dart';
+import 'package:histox/core/market/candle.dart';
+import 'package:histox/features/chart/model/chart_series.dart';
 
 Candle bar(String iso, double o, double h, double l, double c, [double? v]) =>
     Candle(

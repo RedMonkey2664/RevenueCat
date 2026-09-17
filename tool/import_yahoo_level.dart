@@ -25,8 +25,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/pause_ladder.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/pause_ladder.dart';
 
 const String _ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/daily_pivot/model/pivot_models.dart';
+import 'package:histox/features/daily_pivot/model/pivot_models.dart';
 
 void main() {
   group('PivotClock', () {

@@ -76,7 +76,7 @@ class NerveShareCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'MARKET NERVE · SIMULATED · NOT FINANCIAL ADVICE',
+            'HISTOX · SIMULATED · NOT FINANCIAL ADVICE',
             textAlign: TextAlign.center,
             style: AppText.label(size: 8.5, color: AppColors.simulatedBadge),
           ),

@@ -67,7 +67,7 @@ class DecisionPanel extends StatelessWidget {
             // (nominal), selling is red (the alarm), and buying the dip is
             // amber — the boldest move, not the safest. None of them wears a
             // "recommended" treatment.
-            _row(DecisionAction.hold, 'DO NOTHING', AppColors.accent, compact),
+            _row(DecisionAction.hold, 'DO NOTHING', AppColors.data, compact),
             SizedBox(height: gap),
             _row(DecisionAction.sell, 'EXIT TO CASH', AppColors.down, compact),
             SizedBox(height: gap),

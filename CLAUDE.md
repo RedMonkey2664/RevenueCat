@@ -1,4 +1,4 @@
-# CLAUDE.md — Project Context: Market Nerve
+# CLAUDE.md — Project Context: HistoX
 
 ## What this app is
 Four connected parts under one app (the fourth was added after the original

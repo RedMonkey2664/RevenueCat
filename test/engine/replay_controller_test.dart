@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/portfolio.dart';
-import 'package:market_nerve/features/simulator/engine/replay_controller.dart';
-import 'package:market_nerve/features/simulator/engine/script_event_model.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/portfolio.dart';
+import 'package:histox/features/simulator/engine/replay_controller.dart';
+import 'package:histox/features/simulator/engine/script_event_model.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
 
 /// A flat 20-candle series at ₹100, so any portfolio movement in a test comes
 /// from the decision under test rather than from price drift.

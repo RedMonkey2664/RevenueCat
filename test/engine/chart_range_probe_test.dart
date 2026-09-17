@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/data/sample/dev_sample_level.dart';
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
+import 'package:histox/data/sample/dev_sample_level.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
 
 /// The chart rebases prices to an index of 100 at the level's first close
 /// (blind mode). The header's P&L is computed from the same closes. If the two

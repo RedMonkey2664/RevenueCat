@@ -42,18 +42,18 @@ Future<void> main() async {
         sharedPreferencesProvider.overrideWithValue(prefs),
         purchasesServiceProvider.overrideWithValue(purchases),
       ],
-      child: const MarketNerveApp(),
+      child: const HistoXApp(),
     ),
   );
 }
 
-class MarketNerveApp extends StatelessWidget {
-  const MarketNerveApp({super.key});
+class HistoXApp extends StatelessWidget {
+  const HistoXApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Market Nerve',
+      title: 'HistoX',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       // Wraps the navigator, so pushed routes and dialogs are framed too —

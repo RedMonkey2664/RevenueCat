@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/data/sample/dev_sample_level.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/data/sample/dev_sample_level.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
 
 import '../support/level_harness.dart';
 

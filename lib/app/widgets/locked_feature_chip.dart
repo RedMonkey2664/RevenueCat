@@ -125,7 +125,7 @@ Future<void> showLockedFeatureSheet(BuildContext context, String label) {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Market Nerve is a behavioural simulator, not a trading '
+              'HistoX is a behavioural simulator, not a trading '
               'terminal. This control is part of the console look and is not '
               'wired up.\n\n'
               'The chart, the moving average, RSI, the replay speeds and the '

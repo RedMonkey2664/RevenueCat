@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/campaign/level_repository.dart';
-import 'package:market_nerve/features/simulator/engine/level_brief.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/campaign/level_repository.dart';
+import 'package:histox/features/simulator/engine/level_brief.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
 
 import '../support/level_harness.dart';
 

@@ -7,7 +7,7 @@ import '../../app/widgets/hud.dart';
 import '../../core/services/purchases_service.dart';
 import '../simulator/campaign/level_repository.dart';
 
-/// Market Nerve Pro (artboard 1k).
+/// HistoX Pro (artboard 1k).
 ///
 /// Shown at the natural moment — straight after a debrief, on the way into a
 /// Pro level — and everywhere else a Pro feature is tapped. Its copy follows
@@ -166,7 +166,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   Row(
                     children: <Widget>[
                       Text(
-                        'MARKET NERVE PRO',
+                        'HISTOX PRO',
                         style: AppText.label(size: 11, weight: FontWeight.w600),
                       ),
                       const Spacer(),

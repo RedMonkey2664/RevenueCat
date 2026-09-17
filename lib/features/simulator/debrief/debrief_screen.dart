@@ -238,7 +238,7 @@ class _DebriefScreenState extends ConsumerState<DebriefScreen> {
                     value: score.wasTested
                         ? '$exact/${score.momentsTested}'
                         : '—',
-                    color: AppColors.accent,
+                    color: AppColors.data,
                   ),
                   const VerticalDivider(width: 1, color: AppColors.border),
                   _DebriefStat(

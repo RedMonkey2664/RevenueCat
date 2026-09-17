@@ -97,13 +97,13 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       if (bytes == null) return;
 
       final Directory dir = await getTemporaryDirectory();
-      final File file = File('${dir.path}/market_nerve_time_machine.png');
+      final File file = File('${dir.path}/histox_time_machine.png');
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
 
       await SharePlus.instance.share(
         ShareParams(
           files: <XFile>[XFile(file.path)],
-          text: 'What did waiting cost you? — Market Nerve',
+          text: 'What did waiting cost you? — HistoX',
         ),
       );
     } on Object catch (error) {

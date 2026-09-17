@@ -88,7 +88,7 @@ class PivotVoteView extends ConsumerWidget {
                         const TextSpan(text: 'WILL BTC CLOSE ABOVE '),
                         TextSpan(
                           text: formatUsd(strike),
-                          style: const TextStyle(color: AppColors.accent),
+                          style: const TextStyle(color: AppColors.data),
                         ),
                         const TextSpan(text: ' TODAY?'),
                       ],
@@ -109,7 +109,7 @@ class PivotVoteView extends ConsumerWidget {
                     Expanded(
                       child: PivotVoteButton(
                         choice: PivotChoice.yes,
-                        color: AppColors.accent,
+                        color: AppColors.positive,
                         onTap: strike == null
                             ? null
                             : () => _confirm(context, ref, PivotChoice.yes),
@@ -212,7 +212,7 @@ class _InstrumentHeader extends StatelessWidget {
             else
               Text(
                 formatUsd(price),
-                style: AppText.headline(size: 38, color: AppColors.accent),
+                style: AppText.headline(size: 38, color: AppColors.data),
               ),
             const SizedBox(height: AppSpacing.xs + 2),
             SourceTag.fromAttribution(state.sourceLabel),
@@ -234,7 +234,7 @@ class PivotLockedView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final PivotVote vote = state.vote!;
     final Color c = vote.choice == PivotChoice.yes
-        ? AppColors.accent
+        ? AppColors.positive
         : AppColors.down;
     final double? live = state.live?.price;
     final double? strike = state.strike;
@@ -322,7 +322,7 @@ class PivotLockedView extends ConsumerWidget {
                       formatUsd(live),
                       style: AppText.headline(
                         size: 36,
-                        color: AppColors.accent,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   const Spacer(),
@@ -332,7 +332,7 @@ class PivotLockedView extends ConsumerWidget {
                       style: AppText.body(
                         size: 14,
                         color: live >= strike
-                            ? AppColors.accent
+                            ? AppColors.positive
                             : AppColors.down,
                       ),
                     ),
@@ -456,7 +456,7 @@ class PivotPollClosedView extends ConsumerWidget {
             children: <Widget>[
               _Share(
                 value: tally!.yesShare,
-                color: AppColors.accent,
+                color: AppColors.data,
                 big: true,
               ),
               const Spacer(),
@@ -527,6 +527,7 @@ class PivotPollClosedView extends ConsumerWidget {
                 label: 'IF RIGHT',
                 mono: true,
                 valueSize: 34,
+                valueColor: AppColors.positive,
               ),
             ),
             const SizedBox(width: AppSpacing.md + 4),
@@ -692,7 +693,7 @@ class PivotResolvedView extends ConsumerWidget {
     final PivotVote vote = state.vote!;
     final bool right = outcome.winner == vote.choice;
     final PivotAward award = state.award ?? PivotAward.none;
-    final Color c = right ? AppColors.accent : AppColors.down;
+    final Color c = right ? AppColors.positive : AppColors.down;
     final ProgressState progress = ref.watch(progressProvider);
     final PivotTally? tally = state.tally;
     final bool readable = tally?.isReadable ?? false;
@@ -770,7 +771,7 @@ class PivotResolvedView extends ConsumerWidget {
                     style: AppText.display(
                       size: 52,
                       color: award.total > 0
-                          ? AppColors.accent
+                          ? AppColors.positive
                           : AppColors.textFaint,
                       height: 1,
                     ),
@@ -907,7 +908,7 @@ class PivotMissedView extends ConsumerWidget {
                   style: AppText.display(
                     size: 48,
                     color: outcome.winner == PivotChoice.yes
-                        ? AppColors.accent
+                        ? AppColors.positive
                         : AppColors.down,
                   ),
                 ),

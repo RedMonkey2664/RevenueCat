@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/engine/indicators.dart';
+import 'package:histox/features/simulator/engine/indicators.dart';
 
 void main() {
   group('simpleMovingAverage', () {

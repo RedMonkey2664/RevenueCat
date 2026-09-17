@@ -4,7 +4,7 @@ import 'theme.dart';
 
 /// Constrains the app to phone width on a larger viewport.
 ///
-/// Market Nerve targets iOS and Android phones only (CLAUDE.md). On a desktop
+/// HistoX targets iOS and Android phones only (CLAUDE.md). On a desktop
 /// browser — which is how the app gets play-tested — an unconstrained layout
 /// stretches a 3-column level grid across 1900pt, giving 630pt-wide tiles that
 /// look broken. Rather than making every screen responsive for a form factor

@@ -1,4 +1,4 @@
-package com.marketnerve.market_nerve
+package com.histox.app
 
 import io.flutter.embedding.android.FlutterActivity
 

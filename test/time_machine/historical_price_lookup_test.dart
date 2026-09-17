@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:market_nerve/core/services/crypto_api_service.dart';
-import 'package:market_nerve/core/services/fx_rate_service.dart';
-import 'package:market_nerve/features/time_machine/services/historical_price_lookup.dart';
+import 'package:histox/core/services/crypto_api_service.dart';
+import 'package:histox/core/services/fx_rate_service.dart';
+import 'package:histox/features/time_machine/services/historical_price_lookup.dart';
 
 /// Counts requests so the session-cache behaviour can be asserted rather than
 /// assumed — TIME_MACHINE.md requires not re-querying on every keystroke.

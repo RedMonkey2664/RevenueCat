@@ -1,6 +1,6 @@
 # PROMPT — Hand this to Claude Code to start the build
 
-You are building **Market Nerve**, a mobile app (Flutter, iOS + Android) with three
+You are building **HistoX**, a mobile app (Flutter, iOS + Android) with three
 connected parts:
 
 1. **Behavioral Simulator** — the core hackathon showpiece. Users survive fast-

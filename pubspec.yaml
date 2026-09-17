@@ -1,5 +1,5 @@
-name: market_nerve
-description: "Market Nerve - behavioral finance simulator"
+name: histox
+description: "HistoX - behavioural finance simulator"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

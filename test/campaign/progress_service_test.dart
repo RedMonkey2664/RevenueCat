@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/services/progress_service.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/core/services/progress_service.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

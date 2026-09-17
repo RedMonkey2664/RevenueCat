@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/market/bar_interval.dart';
-import 'package:market_nerve/core/market/candle.dart';
-import 'package:market_nerve/core/market/instrument.dart';
-import 'package:market_nerve/features/simulator/custom/custom_sim_builder.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
+import 'package:histox/core/market/bar_interval.dart';
+import 'package:histox/core/market/candle.dart';
+import 'package:histox/core/market/instrument.dart';
+import 'package:histox/features/simulator/custom/custom_sim_builder.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
 
 const Instrument nifty = Instrument(
   id: 'yahoo:^NSEI',

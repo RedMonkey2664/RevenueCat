@@ -145,7 +145,7 @@ class _MascotVideoState extends State<MascotVideo> {
     );
 
     return Semantics(
-      label: 'Market Nerve mascot',
+      label: 'HistoX mascot',
       image: true,
       child: SizedBox(
         width: w,

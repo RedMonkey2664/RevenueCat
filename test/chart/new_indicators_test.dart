@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/indicators/indicators.dart';
+import 'package:histox/core/indicators/indicators.dart';
 
 /// A deterministic wave, so expectations are about the maths rather than
 /// about a particular random draw.

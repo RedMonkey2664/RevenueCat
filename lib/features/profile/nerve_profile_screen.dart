@@ -1002,10 +1002,10 @@ class _ShareSheetState extends State<_ShareSheet> {
             XFile.fromData(
               bytes.buffer.asUint8List(),
               mimeType: 'image/png',
-              name: 'market_nerve_profile.png',
+              name: 'histox_profile.png',
             ),
           ],
-          text: 'My Nerve Profile — Market Nerve',
+          text: 'My Nerve Profile — HistoX',
         ),
       );
     } on Object catch (error) {

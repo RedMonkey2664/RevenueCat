@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens for Market Nerve.
+/// Design tokens for HistoX.
 ///
-/// The **tactical-ops HUD**, in its cyan revision (the wireframe set of Sep
-/// 2026, which supersedes the mint palette of `Market Nerve HUD.dc.html`). The
-/// structure is unchanged — "everything is an instrument reading: mono
-/// numerics, hairline rails, corner ticks, scanlines over glass" — only the
-/// palette and the two faces moved.
+/// The **tactical-ops HUD**, in its HistoX revision (the reference set of Sep
+/// 2026, which supersedes the cyan wireframes). The structure is unchanged —
+/// "everything is an instrument reading: mono numerics, hairline rails, corner
+/// ticks, scanlines over glass" — the brand colour moved from cyan to orange
+/// and cyan stayed behind on the instruments.
 ///
-/// Three colours carry state, and the discipline is that they never blur:
+/// Five colours carry state, and the discipline is that they never blur:
 ///
-///   * **cyan** — system nominal. Accent, positive values, the selected state.
-///   * **amber** — caution. Advanced mode, the SIMULATED framing, streaks.
+///   * **orange** — the brand. The wordmark, primary actions, the selected
+///     state. It is the colour of *what you can do*.
+///   * **cyan** — the instruments. Rising candles, the live tape, progress,
+///     the crowd's YES. It is the colour of *what the market is doing*, so it
+///     never competes with an action.
+///   * **green** — a correct outcome. The Pivot's YES, a right call, points
+///     earned. Never a button that has not been earned.
+///   * **amber** — caution. Advanced mode, severity, the SIMULATED framing.
 ///   * **red** — alarm. The decision moment and negative values, nothing else.
 ///
 /// Every token *name* is unchanged from the previous palettes, so the forty-odd
@@ -36,7 +42,7 @@ abstract final class AppColors {
   static const Color surfaceRaised = Color(0xFF121A22);
 
   /// Panel wash for a card drawn *over* content, where translucency is right.
-  static const Color panelWash = Color(0x145BC8F5);
+  static const Color panelWash = Color(0x14F2712C);
 
   /// Hairline rails. Steel, cooler than the ground.
   static const Color border = Color(0xFF1C2833);
@@ -46,22 +52,35 @@ abstract final class AppColors {
   static const Color textSecondary = Color(0xFF8A98A6);
   static const Color textFaint = Color(0xFF56626E);
 
-  /// System nominal. The one electric accent.
-  static const Color accent = Color(0xFF5BC8F5);
+  /// The brand. Every primary action, the wordmark, the selected state.
+  static const Color accent = Color(0xFFF2712C);
 
   /// Muted accent for fills sitting behind the bright one.
-  static const Color accentSoft = Color(0x295BC8F5);
+  static const Color accentSoft = Color(0x29F2712C);
 
-  /// Brightest cyan, for a pressed or hovered accent only.
-  static const Color accentBright = Color(0xFF8FDCFA);
+  /// Brightest orange, for a pressed or hovered accent only.
+  static const Color accentBright = Color(0xFFFF9254);
 
-  /// Foreground for anything filled with [accent]. Near-black with a navy
-  /// cast; pure black on cyan vibrates at label sizes.
-  static const Color onAccent = Color(0xFF061019);
+  /// Foreground for anything filled with [accent]. Near-black; orange is
+  /// bright enough to carry dark text, which a cyan fill could not.
+  static const Color onAccent = Color(0xFF140A04);
 
-  /// Direction of price. [up] and [accent] are deliberately the same cyan: in
-  /// this direction a gain *is* the nominal state.
-  static const Color up = accent;
+  /// The instruments. Cyan reads as data rather than as something to press,
+  /// so it survived the rebrand on every readout the market drives.
+  static const Color data = Color(0xFF5BC8F5);
+
+  /// Muted [data], for a fill behind the bright one.
+  static const Color dataSoft = Color(0x295BC8F5);
+
+  /// A correct outcome: the Pivot's YES, a right call, points earned.
+  static const Color positive = Color(0xFF4ADE80);
+
+  /// Muted [positive].
+  static const Color positiveSoft = Color(0x294ADE80);
+
+  /// Direction of price. A rising bar is [data], not the brand: the chart
+  /// must not look like a row of buttons.
+  static const Color up = data;
   static const Color down = Color(0xFFEF5350);
 
   /// A softer red for large falling numerals, where full-strength red at 32pt

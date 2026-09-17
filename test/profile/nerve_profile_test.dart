@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/services/run_history_service.dart';
-import 'package:market_nerve/features/profile/model/nerve_profile.dart';
+import 'package:histox/core/services/run_history_service.dart';
+import 'package:histox/features/profile/model/nerve_profile.dart';
 
 DecisionSample _s(
   String action,

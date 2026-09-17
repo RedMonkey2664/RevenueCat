@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/market/candle.dart';
-import 'package:market_nerve/core/market/instrument.dart';
-import 'package:market_nerve/core/market/market_data_service.dart';
-import 'package:market_nerve/core/services/progress_service.dart';
-import 'package:market_nerve/features/daily_pivot/model/pivot_models.dart';
-import 'package:market_nerve/features/daily_pivot/services/pivot_backend.dart';
-import 'package:market_nerve/features/daily_pivot/services/pivot_controller.dart';
-import 'package:market_nerve/features/daily_pivot/services/pivot_price_service.dart';
-import 'package:market_nerve/features/daily_pivot/services/pivot_store.dart';
+import 'package:histox/core/market/candle.dart';
+import 'package:histox/core/market/instrument.dart';
+import 'package:histox/core/market/market_data_service.dart';
+import 'package:histox/core/services/progress_service.dart';
+import 'package:histox/features/daily_pivot/model/pivot_models.dart';
+import 'package:histox/features/daily_pivot/services/pivot_backend.dart';
+import 'package:histox/features/daily_pivot/services/pivot_controller.dart';
+import 'package:histox/features/daily_pivot/services/pivot_price_service.dart';
+import 'package:histox/features/daily_pivot/services/pivot_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _day = '2026-09-07';

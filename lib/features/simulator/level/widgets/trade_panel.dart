@@ -101,7 +101,7 @@ class _TradePanelState extends State<TradePanel> {
                     // Stays visible and says why, rather than silently doing
                     // nothing, when the move is impossible.
                     label: canBuy ? 'BUY' : 'NO CASH',
-                    color: AppColors.up,
+                    color: AppColors.accent,
                     height: 58,
                     fontSize: canBuy ? 24 : 15,
                     onPressed: canBuy ? () => widget.onBuy(_size) : null,

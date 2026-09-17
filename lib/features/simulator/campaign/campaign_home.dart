@@ -83,6 +83,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   _EntryCard(
+                    emphasis: true,
                     icon: Icons.gps_not_fixed,
                     title: 'CUSTOM SIMULATION',
                     body:
@@ -241,7 +242,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
   }
 }
 
-/// "MARKET NERVE / CAMPAIGN" and the two round buttons.
+/// "HistoX / CAMPAIGN" and the two round buttons.
 class _Header extends StatelessWidget {
   const _Header({
     required this.mode,
@@ -266,11 +267,11 @@ class _Header extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'MARKET NERVE',
+                  'HistoX',
                   style: AppText.railLabel(
-                    size: 38,
+                    size: 34,
                     weight: FontWeight.w800,
-                    letterSpacing: 38 * 0.12,
+                    letterSpacing: 34 * 0.005,
                   ),
                 ),
               ),
@@ -394,7 +395,6 @@ class _StatsStrip extends StatelessWidget {
             _StatCell(
               glyph: const _Diamond(),
               value: '$streak',
-              valueColor: AppColors.caution,
               label: 'STREAK',
               // A live streak is underlined, the way the wireframe marks it.
               underline: streak > 0,
@@ -431,7 +431,7 @@ class _StatsStrip extends StatelessWidget {
   }
 }
 
-/// The streak's amber diamond.
+/// The streak's green diamond.
 class _Diamond extends StatelessWidget {
   const _Diamond();
 
@@ -439,7 +439,7 @@ class _Diamond extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: 0.785398,
-      child: Container(width: 11, height: 11, color: AppColors.caution),
+      child: Container(width: 11, height: 11, color: AppColors.positive),
     );
   }
 }
@@ -536,12 +536,17 @@ class _EntryCard extends StatelessWidget {
     required this.title,
     required this.body,
     required this.onTap,
+    this.emphasis = false,
   });
 
   final IconData icon;
   final String title;
   final String body;
   final VoidCallback onTap;
+
+  /// The lead card carries a warm wash and an accent rail, so the eye lands
+  /// on one of the two entries rather than weighing them up.
+  final bool emphasis;
 
   @override
   Widget build(BuildContext context) {
@@ -557,8 +562,22 @@ class _EntryCard extends StatelessWidget {
           AppSpacing.md + 6,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.5),
-          border: Border.all(color: AppColors.borderStrong),
+          color: emphasis ? null : AppColors.surface.withValues(alpha: 0.5),
+          gradient: emphasis
+              ? LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: <Color>[
+                    AppColors.accent.withValues(alpha: 0.16),
+                    AppColors.accent.withValues(alpha: 0.03),
+                  ],
+                )
+              : null,
+          border: Border.all(
+            color: emphasis
+                ? AppColors.accent.withValues(alpha: 0.55)
+                : AppColors.borderStrong,
+          ),
         ),
         child: Row(
           children: <Widget>[
@@ -672,6 +691,7 @@ class _MarketChip extends StatelessWidget {
               color: selected
                   ? AppColors.accent.withValues(alpha: 0.1)
                   : Colors.transparent,
+              borderRadius: const BorderRadius.all(Radius.circular(999)),
               border: Border.all(
                 color: selected ? AppColors.accent : AppColors.borderStrong,
                 width: selected ? 1.4 : 1,

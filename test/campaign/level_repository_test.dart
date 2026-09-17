@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/features/simulator/campaign/level_repository.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/script_event_model.dart';
+import 'package:histox/features/simulator/campaign/level_repository.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/script_event_model.dart';
 
 /// A bundle serving only what a test hands it, so these tests exercise the
 /// parsing rules rather than the shipped manifest's current contents.

@@ -251,10 +251,12 @@ class _NodeSkin {
   final double diameter;
   final double opacity;
 
-  /// The candy rotation for reachable nodes, straight from the canvas.
+  /// The candy rotation for reachable nodes, in the reference set's order:
+  /// magenta, green, blue. Orange is deliberately absent — it belongs to the
+  /// brand now, and a node wearing it would read as the current one.
   static const List<List<Color>> _rotation = <List<Color>>[
+    <Color>[Color(0xFFE9509E), Color(0xFFD62E86), Color(0xFF8E1A55)],
     <Color>[Color(0xFF58D68D), Color(0xFF2ECC71), Color(0xFF1E8449)],
-    <Color>[Color(0xFFF5B041), Color(0xFFE67E22), Color(0xFFAF601A)],
     <Color>[Color(0xFF5DADE2), Color(0xFF2E86C1), Color(0xFF1B4F72)],
   ];
 
@@ -270,11 +272,12 @@ class _NodeSkin {
         final List<Color> c = _rotation[index % _rotation.length];
         return _NodeSkin(top: c[0], bottom: c[1], rim: c[2], diameter: 88);
       case _NodeState.current:
-        // Bigger, hotter, and the only node that pulses.
+        // Bigger, hotter, and the only node that pulses. Amber, so PLAY is
+        // the one warm node on a map of cool cleared ones.
         return const _NodeSkin(
-          top: Color(0xFFF06292),
-          bottom: Color(0xFFE91E63),
-          rim: Color(0xFFAD1457),
+          top: Color(0xFFF7C948),
+          bottom: Color(0xFFF2A50C),
+          rim: Color(0xFFA9700A),
           diameter: 98,
         );
       case _NodeState.available:

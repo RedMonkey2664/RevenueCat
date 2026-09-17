@@ -76,7 +76,7 @@ class _Card extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'MARKET NERVE',
+                  'HistoX',
                   style: AppText.mono(
                     size: 34,
                     weight: FontWeight.w700,

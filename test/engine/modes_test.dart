@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/data/sample/dev_sample_level.dart';
-import 'package:market_nerve/features/simulator/engine/candle_model.dart';
-import 'package:market_nerve/features/simulator/engine/discipline_score.dart';
-import 'package:market_nerve/features/simulator/engine/drawdown_detector.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/replay_controller.dart';
-import 'package:market_nerve/features/simulator/engine/script_event_model.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/data/sample/dev_sample_level.dart';
+import 'package:histox/features/simulator/engine/candle_model.dart';
+import 'package:histox/features/simulator/engine/discipline_score.dart';
+import 'package:histox/features/simulator/engine/drawdown_detector.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/replay_controller.dart';
+import 'package:histox/features/simulator/engine/script_event_model.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
 
 /// Builds a series from explicit closes, so each scoring test states the exact
 /// shape it is grading.

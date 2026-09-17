@@ -55,7 +55,7 @@ class _NervePainter extends CustomPainter {
       );
     }
 
-    // The disc: a dark navy face under a steel-cyan ring.
+    // The disc: a dark navy face under a brand-orange ring.
     canvas.drawCircle(
       c,
       r * 0.92,
@@ -112,10 +112,10 @@ class _NervePainter extends CustomPainter {
           eye,
           s * 0.058,
           Paint()
-            ..color = AppColors.accent.withValues(alpha: 0.35)
+            ..color = AppColors.data.withValues(alpha: 0.35)
             ..maskFilter = MaskFilter.blur(BlurStyle.normal, s * 0.02),
         )
-        ..drawCircle(eye, s * 0.045, Paint()..color = AppColors.accent)
+        ..drawCircle(eye, s * 0.045, Paint()..color = AppColors.data)
         ..drawCircle(
           eye.translate(-s * 0.014, -s * 0.014),
           s * 0.014,

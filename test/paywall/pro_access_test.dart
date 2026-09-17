@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/services/purchases_service.dart';
-import 'package:market_nerve/core/services/revenuecat_service.dart';
+import 'package:histox/core/services/purchases_service.dart';
+import 'package:histox/core/services/revenuecat_service.dart';
 
 class _ConnectedStore implements PurchasesService {
   @override

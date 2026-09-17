@@ -10,19 +10,19 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Market Nerve — survive real market crashes with virtual capital. A behavioural finance simulator. No real money, ever.">
+  <meta name="description" content="HistoX — survive real market crashes with virtual capital. A behavioural finance simulator. No real money, ever.">
   <meta name="theme-color" content="#0A0E13">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Market Nerve">
+  <meta name="apple-mobile-web-app-title" content="HistoX">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Market Nerve</title>
+  <title>HistoX</title>
   <link rel="manifest" href="manifest.json">
 
   <!--
@@ -54,15 +54,15 @@
       background: #0A0E13 url("splash/mascot_poster.jpg") center / cover;
     }
     /* Corner ticks, as the app's viewfinder draws them. */
-    #mn-splash .tick { position: absolute; width: 18px; height: 18px; border: 0 solid #5BC8F5; }
+    #mn-splash .tick { position: absolute; width: 18px; height: 18px; border: 0 solid #F2712C; }
     #mn-splash .tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
     #mn-splash .tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
     #mn-splash .bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
     #mn-splash .br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
     #mn-splash .mark {
-      margin-top: 28px; color: #5BC8F5;
-      font: 800 24px/1.2 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-      letter-spacing: 0.2em;
+      margin-top: 28px; color: #F2712C;
+      font: 800 30px/1.2 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.005em;
     }
     #mn-splash .status {
       margin-top: 12px; color: #8A98A6;
@@ -70,7 +70,7 @@
       letter-spacing: 0.3em; display: flex; align-items: center; gap: 10px;
     }
     #mn-splash .dot {
-      width: 7px; height: 7px; border-radius: 50%; background: #5BC8F5;
+      width: 7px; height: 7px; border-radius: 50%; background: #F2712C;
       animation: mn-pulse 1.6s ease-in-out infinite alternate;
     }
     #mn-splash .note {
@@ -85,7 +85,7 @@
   </style>
 </head>
 <body>
-  <div id="mn-splash" role="status" aria-label="Market Nerve is loading">
+  <div id="mn-splash" role="status" aria-label="HistoX is loading">
     <div class="frame">
       <video id="mn-splash-video" src="assets/assets/mascot/loading.mp4"
              poster="splash/mascot_poster.jpg"
@@ -94,7 +94,7 @@
       <span class="tick tl"></span><span class="tick tr"></span>
       <span class="tick bl"></span><span class="tick br"></span>
     </div>
-    <div class="mark">MARKET NERVE</div>
+    <div class="mark">HistoX</div>
     <div class="status"><span class="dot"></span>LOADING</div>
     <div class="note">SIMULATED · NO REAL MONEY</div>
   </div>

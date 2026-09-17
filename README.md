@@ -1,12 +1,12 @@
-# Market Nerve
+# HistoX
 
 ## What is it?
 
-Market Nerve is a behavioural finance simulator for iOS and Android. You live through
+HistoX is a behavioural finance simulator for iOS and Android. You live through
 real market crashes, fast-forwarded. At each pause point you make the call: hold, sell,
 or buy the dip. Afterwards the app scores your discipline against what actually happened.
 
-Most people think they'd hold through a crash. Market Nerve lets you find out, with
+Most people think they'd hold through a crash. HistoX lets you find out, with
 virtual capital, before it matters.
 
 **No real money anywhere, ever.** The Simulator trades virtual capital. Live Markets
@@ -122,7 +122,7 @@ flutter test
 
 ## RevenueCat integration
 
-RevenueCat powers the **Market Nerve Pro** subscription: yearly or monthly. Pro
+RevenueCat powers the **HistoX Pro** subscription: yearly or monthly. Pro
 unlocks the 15 Pro campaign levels and the Nerve Profile's full report. Everything else
 stays free.
 
@@ -158,8 +158,8 @@ cp config/revenuecat.example.json config/revenuecat.json   # then fill in the ke
 | `RC_TEST_KEY` | Every platform, overriding the others. Development only. Never ship it. |
 
 **Dashboard setup**
-1. Add the App Store app (`com.marketnerve.marketNerve`) and the Play Store app
-   (`com.marketnerve.market_nerve`), with their store credentials.
+1. Add the App Store app and the Play Store app — both bundle IDs are
+   `com.histox.app` — with their store credentials.
 2. Import the monthly and yearly subscription products from both stores.
 3. Create the entitlement `pro` and attach every product to it.
 4. Create an offering, mark it **Current**, and add an **Annual** package and a
@@ -222,7 +222,7 @@ Design and spec docs: [ARCHITECTURE.md](ARCHITECTURE.md), [ENGINE.md](ENGINE.md)
   <img src="docs/screenshots/campaign.png" width="200" alt="Campaign home: stats, Custom Simulation, Endless and the mission map">
   <img src="docs/screenshots/pause_point.png" width="200" alt="A pause point: the tape halts mid-crash and asks Hold, Sell All or Buy the Dip">
   <img src="docs/screenshots/debrief.png" width="200" alt="Debrief: Discipline Score, P&L, calls and the breakdown">
-  <img src="docs/screenshots/paywall.png" width="200" alt="Market Nerve Pro paywall, shown here with no store connected">
+  <img src="docs/screenshots/paywall.png" width="200" alt="HistoX Pro paywall, shown here with no store connected">
   <img src="docs/screenshots/share_card.png" width="200" alt="Nerve Profile share card">
 </p>
 

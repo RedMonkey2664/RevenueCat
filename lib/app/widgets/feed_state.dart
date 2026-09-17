@@ -58,7 +58,7 @@ class SourceTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color c = delayed ? AppColors.caution : AppColors.accent;
+    final Color c = delayed ? AppColors.caution : AppColors.data;
     final String text = delayed
         ? '$source · DELAYED${delayLabel == null ? '' : ' $delayLabel'}'
         : '$source · LIVE';

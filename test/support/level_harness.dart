@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:market_nerve/core/services/progress_service.dart';
-import 'package:market_nerve/features/simulator/engine/level_model.dart';
-import 'package:market_nerve/features/simulator/engine/simulation_mode.dart';
-import 'package:market_nerve/features/simulator/level/level_screen.dart';
+import 'package:histox/core/services/progress_service.dart';
+import 'package:histox/features/simulator/engine/level_model.dart';
+import 'package:histox/features/simulator/engine/simulation_mode.dart';
+import 'package:histox/features/simulator/level/level_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// iPhone 14. Not the smallest target — `responsive_layout_test.dart` covers

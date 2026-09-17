@@ -303,7 +303,7 @@ class PivotStreakPanel extends StatelessWidget {
               if (risen)
                 const Icon(
                   Icons.arrow_drop_up,
-                  color: AppColors.accent,
+                  color: AppColors.positive,
                   size: 26,
                 )
               else
@@ -317,7 +317,12 @@ class PivotStreakPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          SegmentBar(filled: streak.clamp(0, goal), total: goal, height: 6),
+          SegmentBar(
+            filled: streak.clamp(0, goal),
+            total: goal,
+            height: 6,
+            color: AppColors.data,
+          ),
           if (risen) ...<Widget>[
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -435,18 +440,18 @@ class CrowdSplitBar extends StatelessWidget {
                       child: Container(
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.only(left: AppSpacing.md + 4),
-                        color: AppColors.accent.withValues(alpha: 0.4),
+                        color: AppColors.data.withValues(alpha: 0.4),
                         child: Text(
                           'YES',
                           style: AppText.label(
                             size: 12,
                             weight: FontWeight.w600,
-                            color: AppColors.accent,
+                            color: AppColors.data,
                           ),
                         ),
                       ),
                     ),
-                    Container(width: 3, color: AppColors.accent),
+                    Container(width: 3, color: AppColors.textPrimary),
                     Expanded(
                       flex: ((1 - yes) * 1000).round().clamp(1, 999),
                       child: Container(
@@ -509,7 +514,7 @@ class PointsLine extends StatelessWidget {
             value,
             style: AppText.mono(
               size: 14,
-              color: active ? AppColors.accent : AppColors.textFaint,
+              color: active ? AppColors.positive : AppColors.textFaint,
             ),
           ),
         ],
