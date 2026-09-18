@@ -47,12 +47,12 @@ class CampaignPath extends StatelessWidget {
   /// flex column and draws the path *behind* them at approximate coordinates,
   /// so 130 was never a spacing anyone had to honour. Using it literally made
   /// every label collide with the circle below it.
-  static const double _labelBlock = 72;
+  static const double _labelBlock = 66;
   static const double _slotGap = 20;
   static const double _spacing =
       _PathNode.maxDiameter + _labelBlock + _slotGap;
 
-  static const double _firstCentre = 62;
+  static const double _firstCentre = 54;
 
   /// How far a node may swing either side of centre. Scaled from the width so
   /// the curve reads the same on a 375 and a 430 screen.
@@ -270,7 +270,7 @@ class _NodeSkin {
     switch (state) {
       case _NodeState.cleared:
         final List<Color> c = _rotation[index % _rotation.length];
-        return _NodeSkin(top: c[0], bottom: c[1], rim: c[2], diameter: 88);
+        return _NodeSkin(top: c[0], bottom: c[1], rim: c[2], diameter: 80);
       case _NodeState.current:
         // Bigger, hotter, and the only node that pulses. Amber, so PLAY is
         // the one warm node on a map of cool cleared ones.
@@ -278,7 +278,7 @@ class _NodeSkin {
           top: Color(0xFFF7C948),
           bottom: Color(0xFFF2A50C),
           rim: Color(0xFFA9700A),
-          diameter: 98,
+          diameter: 90,
         );
       case _NodeState.available:
         final List<Color> c = _rotation[index % _rotation.length];
@@ -286,7 +286,7 @@ class _NodeSkin {
           top: c[0],
           bottom: c[1],
           rim: c[2],
-          diameter: 82,
+          diameter: 76,
           opacity: 0.55,
         );
       case _NodeState.locked:
@@ -295,7 +295,7 @@ class _NodeSkin {
           top: c[0],
           bottom: c[1],
           rim: c[2],
-          diameter: 82,
+          diameter: 76,
           opacity: 0.7,
         );
       case _NodeState.noData:
@@ -303,7 +303,7 @@ class _NodeSkin {
           top: Color(0x40828C96),
           bottom: Color(0x335A646E),
           rim: Color(0x8032373C),
-          diameter: 76,
+          diameter: 70,
           opacity: 0.45,
         );
     }
@@ -409,11 +409,11 @@ class _PathNodeState extends State<_PathNode>
           // Blind mode: the real event is named only once cleared.
           if (cleared)
             Text(
-              widget.entry.revealTitle,
+              widget.entry.revealTitle.toUpperCase(),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppText.headline(size: 17, letterSpacing: 17 * 0.02),
+              style: AppText.headline(size: 15, letterSpacing: 15 * 0.03),
             )
           else
             // A bare row of block glyphs at title size read as a broken
@@ -485,8 +485,10 @@ class _PathNodeState extends State<_PathNode>
             for (int i = 0; i < 3; i++)
               Icon(
                 i < _stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                size: 19,
-                color: const Color(0xFFF4D03F),
+                size: 17,
+                color: skin.top.withValues(
+                  alpha: (i < _stars ? 1.0 : 0.45) * skin.opacity,
+                ),
               ),
           ],
         );

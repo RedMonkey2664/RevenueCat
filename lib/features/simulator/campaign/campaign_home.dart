@@ -96,6 +96,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   ),
                   const SizedBox(height: AppSpacing.sm + 4),
                   _EntryCard(
+                    compact: true,
                     icon: Icons.shuffle,
                     title: 'ENDLESS',
                     body:
@@ -107,19 +108,19 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.lg),
                   Container(height: 1, color: AppColors.border),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     'SELECT MISSION',
                     style: AppText.railLabel(
-                      size: 22,
+                      size: 16,
                       weight: FontWeight.w800,
                       color: AppColors.textSecondary,
-                      letterSpacing: 22 * 0.3,
+                      letterSpacing: 16 * 0.3,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md + 4),
+                  const SizedBox(height: AppSpacing.md),
                   _MarketFilter(
                     selected: _market,
                     onChanged: (AssetClass? m) => setState(() => _market = m),
@@ -269,9 +270,9 @@ class _Header extends StatelessWidget {
                 child: Text(
                   'HistoX',
                   style: AppText.railLabel(
-                    size: 34,
+                    size: 30,
                     weight: FontWeight.w800,
-                    letterSpacing: 34 * 0.005,
+                    letterSpacing: 30 * 0.005,
                   ),
                 ),
               ),
@@ -477,9 +478,9 @@ class _StatCell extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 4,
-                AppSpacing.md + 4,
+                AppSpacing.sm + 4,
                 4,
-                AppSpacing.md,
+                AppSpacing.sm + 2,
               ),
               child: Column(
                 children: <Widget>[
@@ -492,7 +493,7 @@ class _StatCell extends StatelessWidget {
                         Text(
                           value,
                           style: AppText.display(
-                            size: 26,
+                            size: 23,
                             color: valueColor,
                             height: 1,
                           ),
@@ -537,6 +538,7 @@ class _EntryCard extends StatelessWidget {
     required this.body,
     required this.onTap,
     this.emphasis = false,
+    this.compact = false,
   });
 
   final IconData icon;
@@ -548,6 +550,12 @@ class _EntryCard extends StatelessWidget {
   /// on one of the two entries rather than weighing them up.
   final bool emphasis;
 
+  /// One line, no body copy. The reference set gives the Custom Simulation
+  /// the only card above the map and starts SELECT MISSION immediately after
+  /// it; Endless still has to be reachable, so it keeps a slim row instead of
+  /// being dropped — the map gains nearly all of the height either way.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     return Pressable(
@@ -555,12 +563,19 @@ class _EntryCard extends StatelessWidget {
       minTarget: 0,
       scale: 0.985,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.md + 6,
-          AppSpacing.md + 2,
-          AppSpacing.md + 6,
-        ),
+        padding: compact
+            ? const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm + 4,
+                AppSpacing.md + 2,
+                AppSpacing.sm + 4,
+              )
+            : const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.md + 2,
+                AppSpacing.md,
+              ),
         decoration: BoxDecoration(
           color: emphasis ? null : AppColors.surface.withValues(alpha: 0.5),
           gradient: emphasis
@@ -581,8 +596,8 @@ class _EntryCard extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, size: 22, color: AppColors.accent),
-            const SizedBox(width: AppSpacing.md + 4),
+            Icon(icon, size: compact ? 19 : 22, color: AppColors.accent),
+            SizedBox(width: compact ? AppSpacing.md : AppSpacing.md + 4),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,21 +607,23 @@ class _EntryCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.railLabel(
-                      size: 16.5,
+                      size: compact ? 14.5 : 16.5,
                       weight: FontWeight.w700,
                       color: AppColors.textPrimary,
-                      letterSpacing: 16.5 * 0.16,
+                      letterSpacing: (compact ? 14.5 : 16.5) * 0.16,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    body,
-                    style: AppText.body(
-                      size: 14.5,
-                      color: AppColors.textSecondary,
-                      height: 1.45,
+                  if (!compact) ...<Widget>[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      body,
+                      style: AppText.body(
+                        size: 13.5,
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -635,7 +652,7 @@ class _MarketFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 52,
+      height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: <Widget>[
@@ -686,7 +703,7 @@ class _MarketChip extends StatelessWidget {
             duration: AppMotion.fast,
             curve: AppMotion.curve,
             alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg - 2),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md + 4),
             decoration: BoxDecoration(
               color: selected
                   ? AppColors.accent.withValues(alpha: 0.1)
@@ -700,10 +717,10 @@ class _MarketChip extends StatelessWidget {
             child: Text(
               label,
               style: AppText.body(
-                size: 17,
+                size: 14.5,
                 weight: FontWeight.w500,
                 color: selected ? AppColors.accent : AppColors.textSecondary,
-                letterSpacing: 17 * 0.1,
+                letterSpacing: 14.5 * 0.1,
                 height: 1,
               ),
             ),
