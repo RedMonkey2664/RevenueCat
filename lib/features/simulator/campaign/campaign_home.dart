@@ -105,10 +105,10 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                   Text(
                     'SELECT MISSION',
                     style: AppText.railLabel(
-                      size: 16,
+                      size: 13,
                       weight: FontWeight.w800,
                       color: AppColors.textSecondary,
-                      letterSpacing: 16 * 0.3,
+                      letterSpacing: 13 * 0.3,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm + 4),
@@ -267,9 +267,9 @@ class _Header extends StatelessWidget {
                 child: Text(
                   'HistoX',
                   style: AppText.railLabel(
-                    size: 30,
+                    size: 26,
                     weight: FontWeight.w800,
-                    letterSpacing: 30 * 0.005,
+                    letterSpacing: 26 * 0.005,
                   ),
                 ),
               ),
@@ -281,15 +281,15 @@ class _Header extends StatelessWidget {
                   children: <InlineSpan>[
                     TextSpan(
                       text: 'CAMPAIGN',
-                      style: AppText.label(size: 13, letterSpacing: 13 * 0.3),
+                      style: AppText.label(size: 11, letterSpacing: 11 * 0.25),
                     ),
                     if (mode.isAdvanced)
                       TextSpan(
                         text: ' · ADVANCED',
                         style: AppText.label(
-                          size: 13,
+                          size: 11,
                           color: AppColors.caution,
-                          letterSpacing: 13 * 0.3,
+                          letterSpacing: 11 * 0.25,
                         ),
                       ),
                   ],
@@ -401,7 +401,7 @@ class _StatsStrip extends StatelessWidget {
             _StatCell(
               glyph: const Icon(
                 Icons.star_border,
-                size: 19,
+                size: 16,
                 color: AppColors.textPrimary,
               ),
               value: _avgScore,
@@ -410,14 +410,14 @@ class _StatsStrip extends StatelessWidget {
             _StatCell(
               glyph: const Icon(
                 Icons.check,
-                size: 19,
+                size: 16,
                 color: AppColors.textPrimary,
               ),
               value: '${progress.clearedCount}/$totalLevels',
               label: 'CLEARED',
             ),
             _StatCell(
-              glyph: const Icon(Icons.bolt, size: 20, color: AppColors.accent),
+              glyph: const Icon(Icons.bolt, size: 17, color: AppColors.accent),
               value: '${progress.pivotBonusPoints}',
               valueColor: AppColors.accent,
               label: 'PIVOT DP',
@@ -437,7 +437,7 @@ class _Diamond extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: 0.785398,
-      child: Container(width: 11, height: 11, color: AppColors.positive),
+      child: Container(width: 9, height: 9, color: AppColors.positive),
     );
   }
 }
@@ -486,11 +486,11 @@ class _StatCell extends StatelessWidget {
                     child: Row(
                       children: <Widget>[
                         glyph,
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           value,
                           style: AppText.display(
-                            size: 23,
+                            size: 19,
                             color: valueColor,
                             height: 1,
                           ),
@@ -504,7 +504,7 @@ class _StatCell extends StatelessWidget {
                     child: Text(
                       label,
                       maxLines: 1,
-                      style: AppText.label(size: 10, letterSpacing: 10 * 0.2),
+                      style: AppText.label(size: 9, letterSpacing: 9 * 0.2),
                     ),
                   ),
                 ],
@@ -590,17 +590,17 @@ class _EntryCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.railLabel(
-                      size: 15.5,
+                      size: 13.5,
                       weight: FontWeight.w700,
                       color: AppColors.textPrimary,
-                      letterSpacing: 15.5 * 0.16,
+                      letterSpacing: 13.5 * 0.16,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     body,
                     style: AppText.body(
-                      size: 13,
+                      size: 11.5,
                       color: AppColors.textSecondary,
                       height: 1.3,
                     ),
@@ -633,7 +633,7 @@ class _MarketFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 34,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: <Widget>[
@@ -668,7 +668,7 @@ class _MarketChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.md),
+      padding: const EdgeInsets.only(right: AppSpacing.sm + 4),
       child: Semantics(
         button: true,
         selected: selected,
@@ -684,7 +684,7 @@ class _MarketChip extends StatelessWidget {
             duration: AppMotion.fast,
             curve: AppMotion.curve,
             alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md + 4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md - 2),
             decoration: BoxDecoration(
               color: selected
                   ? AppColors.accent.withValues(alpha: 0.1)
@@ -698,10 +698,10 @@ class _MarketChip extends StatelessWidget {
             child: Text(
               label,
               style: AppText.body(
-                size: 14.5,
+                size: 12.5,
                 weight: FontWeight.w500,
                 color: selected ? AppColors.accent : AppColors.textSecondary,
-                letterSpacing: 14.5 * 0.1,
+                letterSpacing: 12.5 * 0.1,
                 height: 1,
               ),
             ),
