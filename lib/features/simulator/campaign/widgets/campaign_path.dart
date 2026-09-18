@@ -47,10 +47,11 @@ class CampaignPath extends StatelessWidget {
   /// flex column and draws the path *behind* them at approximate coordinates,
   /// so 130 was never a spacing anyone had to honour. Using it literally made
   /// every label collide with the circle below it.
-  static const double _labelBlock = 66;
-  static const double _slotGap = 20;
-  static const double _spacing =
-      _PathNode.maxDiameter + _labelBlock + _slotGap;
+  /// Node pitch, measured off the reference screen: three cleared nodes and
+  /// the PLAY node inside one phone height. The label block is *not* added to
+  /// it — nodes alternate sides, so a node's labels hang in the gap beside
+  /// its neighbour rather than above it.
+  static const double _spacing = 120;
 
   static const double _firstCentre = 54;
 
@@ -60,13 +61,13 @@ class CampaignPath extends StatelessWidget {
 
   /// The serpentine.
   ///
-  /// A sine rather than a strict left-right alternation, so the path curves
-  /// instead of zig-zagging — but the period matters: at 0.85 rad per node the
-  /// wave was slower than the run of nodes on screen and read as a one-way
-  /// drift rather than an S. 1.15 turns over about every five nodes, and the
-  /// phase offset keeps the first node off dead-centre.
+  /// Strict left-right alternation, as the reference draws it. A sine was
+  /// gentler but let two consecutive nodes sit at nearly the same x, and at
+  /// this pitch their labels would have collided; alternating guarantees a
+  /// full swing of clear space beside every label. The connector's cubic
+  /// turns the zig-zag back into an S.
   static double _centreX(int i, double width) =>
-      width / 2 + _amplitude(width) * math.sin(i * 1.15 + 0.6);
+      width / 2 + _amplitude(width) * (i.isEven ? -1 : 1);
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +111,9 @@ class CampaignPath extends StatelessWidget {
                 child: CustomPaint(
                   painter: _PathPainter(
                     centres: centres,
-                    // A segment leaves below the label block it would
-                    // otherwise be drawn straight through, and arrives at the
-                    // top of the next circle.
-                    exitOffset: _PathNode.maxDiameter / 2 + _labelBlock - 6,
+                    // Rim to rim: at this pitch the segment runs diagonally
+                    // past the label rather than starting below it.
+                    exitOffset: _PathNode.maxDiameter / 2 - 4,
                     entryOffset: _PathNode.maxDiameter / 2 - 4,
                   ),
                 ),
@@ -148,7 +148,7 @@ class CampaignPath extends StatelessWidget {
   /// Nodes are positioned by their *centre*, with the label column allowed to
   /// overflow below — hence `Clip.none` on the Stack.
   Widget _positioned({required Offset centre, required Widget child}) {
-    const double slot = 168;
+    const double slot = 146;
     return Positioned(
       left: centre.dx - slot / 2,
       top: centre.dy - _PathNode.maxDiameter / 2,
@@ -168,8 +168,8 @@ class _PathPainter extends CustomPainter {
 
   final List<Offset> centres;
 
-  /// How far below a node's centre a segment starts — clear of that node's
-  /// own label block.
+  /// How far below a node's centre a segment starts — at the rim of its
+  /// circle.
   final double exitOffset;
 
   /// How far above the next node's centre a segment stops — at the rim of
@@ -320,7 +320,7 @@ class _PathNode extends StatefulWidget {
   });
 
   /// The largest node, used to align every slot on one baseline.
-  static const double maxDiameter = 98;
+  static const double maxDiameter = 90;
 
   final LevelManifestEntry entry;
   final LevelProgress? levelProgress;

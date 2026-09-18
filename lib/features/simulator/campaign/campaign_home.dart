@@ -22,8 +22,13 @@ import '../level/level_screen.dart';
 import 'level_repository.dart';
 import 'widgets/campaign_path.dart';
 
-/// Simulator tab: the campaign as an S-curve path (artboard 1f), with the two
-/// other ways into the engine — Custom Simulation and Endless — above it.
+/// Simulator tab: the campaign as an S-curve path (artboard 1f), with the
+/// Custom Simulation above it.
+///
+/// The reference screen puts exactly one card between the stats strip and
+/// SELECT MISSION, so Endless — a way of playing rather than a mission —
+/// moved into the settings sheet. Every gap here is measured from that
+/// screen, which is why they are tighter than the app's usual rhythm.
 ///
 /// The map is driven entirely by `level_manifest.json` — adding or reordering
 /// a level is a data change, never a code change (CLAUDE.md).
@@ -57,7 +62,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md + 4,
-                AppSpacing.lg,
+                AppSpacing.md,
                 AppSpacing.md + 4,
                 0,
               ),
@@ -72,7 +77,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   _StatsStrip(
                     progress: progress,
                     streak: streak,
@@ -81,7 +86,7 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                       orElse: () => 0,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   _EntryCard(
                     emphasis: true,
                     icon: Icons.gps_not_fixed,
@@ -94,23 +99,9 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm + 4),
-                  _EntryCard(
-                    compact: true,
-                    icon: Icons.shuffle,
-                    title: 'ENDLESS',
-                    body:
-                        'A window you have never seen.\nBlind, like the '
-                        'campaign.',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => EndlessHome(mode: _mode),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   Container(height: 1, color: AppColors.border),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     'SELECT MISSION',
                     style: AppText.railLabel(
@@ -120,12 +111,12 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
                       letterSpacing: 16 * 0.3,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.sm + 4),
                   _MarketFilter(
                     selected: _market,
                     onChanged: (AssetClass? m) => setState(() => _market = m),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sm),
                 ],
               ),
             ),
@@ -229,6 +220,12 @@ class _CampaignHomeState extends ConsumerState<CampaignHome> {
       builder: (BuildContext sheetContext) => _RunSettingsSheet(
         mode: _mode,
         onMode: (SimulationMode m) => setState(() => _mode = m),
+        onEndless: () {
+          Navigator.of(sheetContext).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => EndlessHome(mode: _mode)),
+          );
+        },
         onDevRun: () {
           Navigator.of(sheetContext).pop();
           Navigator.of(context, rootNavigator: true).push(
@@ -538,7 +535,6 @@ class _EntryCard extends StatelessWidget {
     required this.body,
     required this.onTap,
     this.emphasis = false,
-    this.compact = false,
   });
 
   final IconData icon;
@@ -550,12 +546,6 @@ class _EntryCard extends StatelessWidget {
   /// on one of the two entries rather than weighing them up.
   final bool emphasis;
 
-  /// One line, no body copy. The reference set gives the Custom Simulation
-  /// the only card above the map and starts SELECT MISSION immediately after
-  /// it; Endless still has to be reachable, so it keeps a slim row instead of
-  /// being dropped — the map gains nearly all of the height either way.
-  final bool compact;
-
   @override
   Widget build(BuildContext context) {
     return Pressable(
@@ -563,19 +553,12 @@ class _EntryCard extends StatelessWidget {
       minTarget: 0,
       scale: 0.985,
       child: Container(
-        padding: compact
-            ? const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.sm + 4,
-                AppSpacing.md + 2,
-                AppSpacing.sm + 4,
-              )
-            : const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.md + 2,
-                AppSpacing.md,
-              ),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm + 4,
+          AppSpacing.md + 2,
+          AppSpacing.sm + 4,
+        ),
         decoration: BoxDecoration(
           color: emphasis ? null : AppColors.surface.withValues(alpha: 0.5),
           gradient: emphasis
@@ -596,8 +579,8 @@ class _EntryCard extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, size: compact ? 19 : 22, color: AppColors.accent),
-            SizedBox(width: compact ? AppSpacing.md : AppSpacing.md + 4),
+            Icon(icon, size: 22, color: AppColors.accent),
+            const SizedBox(width: AppSpacing.md + 4),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,23 +590,21 @@ class _EntryCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.railLabel(
-                      size: compact ? 14.5 : 16.5,
+                      size: 15.5,
                       weight: FontWeight.w700,
                       color: AppColors.textPrimary,
-                      letterSpacing: (compact ? 14.5 : 16.5) * 0.16,
+                      letterSpacing: 15.5 * 0.16,
                     ),
                   ),
-                  if (!compact) ...<Widget>[
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      body,
-                      style: AppText.body(
-                        size: 13.5,
-                        color: AppColors.textSecondary,
-                        height: 1.35,
-                      ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    body,
+                    style: AppText.body(
+                      size: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.3,
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -736,11 +717,16 @@ class _RunSettingsSheet extends StatefulWidget {
   const _RunSettingsSheet({
     required this.mode,
     required this.onMode,
+    required this.onEndless,
     required this.onDevRun,
   });
 
   final SimulationMode mode;
   final ValueChanged<SimulationMode> onMode;
+
+  /// Endless is a way of playing rather than a mission, so it sits with the
+  /// mode switch instead of on the map (see [CampaignHome]).
+  final VoidCallback onEndless;
   final VoidCallback onDevRun;
 
   @override
@@ -779,6 +765,17 @@ class _RunSettingsSheetState extends State<_RunSettingsSheet> {
               ),
               const SizedBox(height: AppSpacing.sm + 2),
             ],
+            const SizedBox(height: AppSpacing.lg),
+            Text('OTHER RUNS', style: AppText.label(size: 11)),
+            const SizedBox(height: AppSpacing.sm + 2),
+            HudButton(
+              label: 'ENDLESS',
+              subtitle: 'A WINDOW YOU HAVE NEVER SEEN',
+              height: 52,
+              fontSize: 14,
+              letterSpacingEm: 0.18,
+              onPressed: widget.onEndless,
+            ),
             const SizedBox(height: AppSpacing.lg),
             Text('DEVELOPMENT', style: AppText.label(size: 11)),
             const SizedBox(height: AppSpacing.sm + 2),
