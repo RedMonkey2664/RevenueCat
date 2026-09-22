@@ -128,7 +128,7 @@ class ChartBasePainter extends CustomPainter {
     List<int> timeTicks,
   ) {
     final Paint grid = Paint()
-      ..color = AppColors.border.withValues(alpha: 0.55)
+      ..color = AppColors.chartGrid
       ..strokeWidth = 0.5;
 
     for (final double t in priceTicks) {
@@ -205,27 +205,23 @@ class ChartBasePainter extends CustomPainter {
       );
     }
 
-    final Paint upStroke = Paint()
+    // Solid bodies both ways, wicks in the body's own colour — the candle
+    // every trading terminal draws. Hollow up-bars read as thinner than the
+    // down-bars beside them, which made a rally look less real than a fall.
+    final Paint upWick = Paint()
       ..color = AppColors.up
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
-    final Paint downStroke = Paint()
+    final Paint downWick = Paint()
       ..color = AppColors.down
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
-    // Hollow up, solid down — the wireframes' candle. A rising bar is an
-    // outline and a falling one is filled, so a crash reads heavier than the
-    // rallies inside it, which is the asymmetry a crash replay is about.
     canvas
-      ..drawPath(upWicks, upStroke)
-      ..drawPath(downWicks, downStroke)
-      ..drawPath(upBodies, upStroke)
-      ..drawPath(
-        downBodies,
-        Paint()..color = AppColors.down.withValues(alpha: 0.82),
-      )
-      ..drawPath(downBodies, downStroke);
+      ..drawPath(upWicks, upWick)
+      ..drawPath(downWicks, downWick)
+      ..drawPath(upBodies, Paint()..color = AppColors.up)
+      ..drawPath(downBodies, Paint()..color = AppColors.down);
   }
 
   void _paintPricePath(Canvas canvas) {
@@ -603,17 +599,29 @@ class ChartBasePainter extends CustomPainter {
   List<double> _priceTicks() {
     final PriceAxis axis = priceGeometry.axis;
 
+    // One line per ~58px, the way a terminal spaces them, rather than a fixed
+    // five: five lines on a short pane is a grid, and on a full-height pane it
+    // is two lonely rules with 160px of nothing between them.
+    final int target = (priceGeometry.plot.height / 58).round().clamp(3, 9);
+
     if (axis.scale == PriceScale.percent) {
       return <double>[
-        for (final double v
-            in niceTicks(priceGeometry.axisMin, priceGeometry.axisMax))
+        for (final double v in niceTicks(
+          priceGeometry.axisMin,
+          priceGeometry.axisMax,
+          target: target,
+        ))
           axis.toPrice(v),
       ];
     }
 
     final double lo = axis.toPrice(priceGeometry.axisMin);
     final double hi = axis.toPrice(priceGeometry.axisMax);
-    return niceTicks(math.min(lo, hi), math.max(lo, hi));
+    return niceTicks(
+      math.min(lo, hi),
+      math.max(lo, hi),
+      target: target,
+    );
   }
 
   List<int> _timeTicks() {
@@ -637,6 +645,12 @@ class ChartBasePainter extends CustomPainter {
   }
 
   void _paintPriceGutter(Canvas canvas, List<double> ticks) {
+    // The last-price tag owns its row; a tick label under it reads as a
+    // smudge, so that one label is dropped.
+    final double? tagY = showLastPriceLine && rawBars.isNotEmpty
+        ? priceGeometry.yForPrice(rawBars.last.close)
+        : null;
+    // ignore: avoid_print
     canvas.drawLine(
       Offset(priceGeometry.plot.right, 0),
       Offset(priceGeometry.plot.right, layout.size.height),
@@ -645,17 +659,27 @@ class ChartBasePainter extends CustomPainter {
         ..strokeWidth = 0.5,
     );
 
+    final Paint tick = Paint()
+      ..color = AppColors.border
+      ..strokeWidth = 0.5;
+
     for (final double price in ticks) {
       final double y = priceGeometry.yForPrice(price);
       if (y < priceGeometry.plot.top + 8 ||
           y > priceGeometry.plot.bottom - 8) {
         continue;
       }
+      if (tagY != null && (y - tagY).abs() < 11) continue;
+      canvas.drawLine(
+        Offset(priceGeometry.plot.right, y),
+        Offset(priceGeometry.plot.right + 4, y),
+        tick,
+      );
       _text(
         canvas,
         labels.price(price),
-        Offset(priceGeometry.plot.right + 6, y - 6),
-        AppText.mono(size: 9, color: AppColors.textFaint),
+        Offset(priceGeometry.plot.right + 8, y - 6),
+        AppText.mono(size: 10, color: AppColors.textSecondary),
       );
     }
   }
@@ -670,15 +694,24 @@ class ChartBasePainter extends CustomPainter {
         ..strokeWidth = 0.5,
     );
 
+    final Paint tick = Paint()
+      ..color = AppColors.border
+      ..strokeWidth = 0.5;
+
     for (final int i in ticks) {
       if (i < 0 || i >= drawBars.length) continue;
       final double x = priceGeometry.xForIndex(i.toDouble());
       if (x < 12 || x > axis.right - 12) continue;
+      canvas.drawLine(
+        Offset(x, axis.top),
+        Offset(x, axis.top + 3),
+        tick,
+      );
       _text(
         canvas,
         labels.time(drawBars[i].date, i, interval),
-        Offset(x, axis.top + 5),
-        AppText.mono(size: 9, color: AppColors.textFaint),
+        Offset(x, axis.top + 6),
+        AppText.mono(size: 10, color: AppColors.textSecondary),
         centerOn: true,
       );
     }

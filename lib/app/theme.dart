@@ -44,6 +44,15 @@ abstract final class AppColors {
   /// Panel wash for a card drawn *over* content, where translucency is right.
   static const Color panelWash = Color(0x14F2712C);
 
+  /// The chart's own ground. A price panel keeps this whatever the screen
+  /// behind it is doing — the halted state tints its frame, never the space
+  /// under the candles, because a red wash there hides the bars.
+  static const Color chartSurface = Color(0xFF0B1116);
+
+  /// Chart gridlines. Below the hairline rails: present when looked for,
+  /// invisible when reading the price.
+  static const Color chartGrid = Color(0xFF161E27);
+
   /// Hairline rails. Steel, cooler than the ground.
   static const Color border = Color(0xFF1C2833);
   static const Color borderStrong = Color(0xFF2B3A48);

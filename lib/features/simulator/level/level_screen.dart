@@ -186,7 +186,6 @@ class _LevelScreenBodyState extends ConsumerState<_LevelScreenBody> {
                       controller: controller,
                       color: stateColor,
                     ),
-              fillChart: state.isFinished,
               toolbarBand: _toolbarBand,
               transportBand: _transportBand,
             ),
@@ -307,7 +306,6 @@ class _Stage extends StatelessWidget {
     required this.chart,
     required this.toolbar,
     required this.transport,
-    required this.fillChart,
     required this.toolbarBand,
     required this.transportBand,
   });
@@ -315,7 +313,6 @@ class _Stage extends StatelessWidget {
   final Widget chart;
   final Widget? toolbar;
   final Widget? transport;
-  final bool fillChart;
   final double toolbarBand;
   final double transportBand;
 
@@ -326,10 +323,11 @@ class _Stage extends StatelessWidget {
         final double controls =
             (toolbar == null ? 0 : toolbarBand) +
             (transport == null ? 0 : transportBand);
-        final double free = math.max(0, box.maxHeight - controls);
-        final double chartHeight = fillChart
-            ? free
-            : math.min(free, math.max(free * 0.62, 230));
+        // The chart takes every pixel the controls do not. It used to stop at
+        // 62% of the stage, which left a dead band under it — worst while
+        // halted, where there are no controls at all and the player is
+        // reading the low.
+        final double chartHeight = math.max(0, box.maxHeight - controls);
 
         return Column(
           children: <Widget>[
@@ -394,9 +392,10 @@ class _ChartFrame extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: DecoratedBox(
         decoration: BoxDecoration(
+          color: AppColors.chartSurface,
           border: Border.all(
             color: halted
-                ? AppColors.down.withValues(alpha: 0.4)
+                ? AppColors.down.withValues(alpha: 0.35)
                 : AppColors.border,
           ),
         ),
