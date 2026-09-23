@@ -55,6 +55,7 @@ class PausePoint {
     required this.flashTreatment,
     required this.optimalAction,
     required this.revealHeadline,
+    this.isAmbiguous = false,
   });
 
   final int triggerIndex;
@@ -66,6 +67,16 @@ class PausePoint {
 
   /// Shown at Debrief only — never during play, or blind mode leaks.
   final String revealHeadline;
+
+  /// The importer could not find a defensible answer here: price neither
+  /// recovered nor fell much further after this moment (`pause_ladder.dart`).
+  ///
+  /// The flag has been in the level data all along and nothing read it, so a
+  /// player who sold at one of these was told they panicked at a moment the
+  /// generator itself described as having no clean right answer. A moment
+  /// like that cannot separate nerve from hindsight, so it is shown and
+  /// discussed but never scored.
+  final bool isAmbiguous;
 
   /// Builds a pause point from script JSON, resolving `trigger_date` against
   /// [candles].
@@ -92,6 +103,9 @@ class PausePoint {
           FlashTreatment.fromWire(json['flash_treatment'] as String),
       optimalAction: DecisionAction.fromWire(json['optimal_action'] as String),
       revealHeadline: json['reveal_headline'] as String,
+      isAmbiguous:
+          (json['derived'] as Map<String, dynamic>?)?['ambiguous'] as bool? ??
+          false,
     );
   }
 }

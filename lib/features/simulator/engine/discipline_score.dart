@@ -31,6 +31,7 @@ class ScoredMoment {
     required this.credit,
     this.soldIntoDecline = false,
     this.candleIndex,
+    this.graded = true,
   });
 
   /// Short title, e.g. "Day 49" or "Drawdown 1".
@@ -51,7 +52,12 @@ class ScoredMoment {
 
   final int? candleIndex;
 
-  bool get isFullCredit => credit >= _Credit.exact;
+  /// False for a moment the data cannot call: it still appears in the
+  /// breakdown, but it is left out of the score rather than rewarding
+  /// whichever button history happened to favour.
+  final bool graded;
+
+  bool get isFullCredit => graded && credit >= _Credit.exact;
 
   bool get isPanic => soldIntoDecline;
 }
@@ -75,23 +81,36 @@ class DisciplineScore {
   final List<ScoredMoment> moments;
   final SimulationMode mode;
 
-  int get momentsTested => moments.length;
+  /// Only graded moments count as tests: an ungradeable one proves nothing
+  /// about the player either way.
+  int get momentsTested =>
+      moments.where((ScoredMoment m) => m.graded).length;
 
-  bool get wasTested => moments.isNotEmpty;
+  bool get wasTested => momentsTested > 0;
 
-  int get panicCount => moments.where((ScoredMoment m) => m.isPanic).length;
+  /// Moments shown in the breakdown but excluded from the score.
+  int get ungradedCount => moments.length - momentsTested;
+
+  int get panicCount =>
+      moments.where((ScoredMoment m) => m.graded && m.isPanic).length;
 
   static DisciplineScore _from(
     List<ScoredMoment> moments,
     SimulationMode mode,
   ) {
-    if (moments.isEmpty) {
-      return DisciplineScore(score: null, moments: moments, mode: mode);
+    final List<ScoredMoment> graded =
+        moments.where((ScoredMoment m) => m.graded).toList();
+    if (graded.isEmpty) {
+      return DisciplineScore(
+        score: null,
+        moments: List<ScoredMoment>.unmodifiable(moments),
+        mode: mode,
+      );
     }
     final double total =
-        moments.fold<double>(0, (double a, ScoredMoment m) => a + m.credit);
+        graded.fold<double>(0, (double a, ScoredMoment m) => a + m.credit);
     return DisciplineScore(
-      score: (total / moments.length * 100).round(),
+      score: (total / graded.length * 100).round(),
       moments: List<ScoredMoment>.unmodifiable(moments),
       mode: mode,
     );
@@ -105,6 +124,24 @@ class DisciplineScore {
     for (final RecordedDecision d in decisions) {
       final DecisionAction chose = d.chosen;
       final DecisionAction best = d.pausePoint.optimalAction;
+
+      // A moment the data cannot call is reported, not graded: scoring it
+      // would be marking the player against hindsight rather than nerve.
+      if (d.pausePoint.isAmbiguous) {
+        moments.add(
+          ScoredMoment(
+            label: 'Day ${d.pausePoint.triggerIndex + 1}',
+            detail:
+                'You chose ${chose.label}. Price neither recovered nor fell '
+                'much further from here, so there is no defensible right '
+                'answer — this moment is left out of your score.',
+            credit: 0,
+            graded: false,
+            candleIndex: d.pausePoint.triggerIndex,
+          ),
+        );
+        continue;
+      }
 
       final double credit;
       final String detail;

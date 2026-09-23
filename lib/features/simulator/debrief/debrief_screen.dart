@@ -16,6 +16,7 @@ import '../../../core/services/purchases_service.dart';
 import '../../../core/services/run_history_service.dart';
 import '../../paywall/paywall_screen.dart';
 import '../campaign/level_repository.dart';
+import 'behaviour_trend.dart';
 import '../engine/candle_model.dart';
 import '../engine/discipline_score.dart';
 import '../engine/level_brief.dart';
@@ -44,9 +45,17 @@ class DebriefScreen extends ConsumerStatefulWidget {
 }
 
 class _DebriefScreenState extends ConsumerState<DebriefScreen> {
+  /// History as it stood before this run was filed, so the comparison is
+  /// against earlier runs rather than against itself.
+  late final BehaviourTrend _trend = BehaviourTrend.from(
+    priorHistory: ref.read(runHistoryProvider),
+    state: widget.state,
+  );
+
   @override
   void initState() {
     super.initState();
+    _trend;
     // Recorded once, on arrival — the Debrief is the only place a run is
     // considered finished. The synthetic sample never touches real progress.
     if (!widget.state.level.isSyntheticSample) {
@@ -316,6 +325,35 @@ class _DebriefScreenState extends ConsumerState<DebriefScreen> {
                     ),
                   ),
                 ),
+                if (_trend.line case final String line)
+                  HudAccordion(
+                    title: 'YOUR PATTERN',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          line,
+                          style: AppText.body(
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        for (final String note in <String?>[
+                          _trend.change,
+                          _trend.depthNote,
+                        ].whereType<String>()) ...<Widget>[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            note,
+                            style: AppText.body(
+                              size: 14,
+                              color: AppColors.textFaint,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 HudAccordion(
                   title: 'THE REVEAL',
                   child: _Reveal(state: state, entry: entry),
