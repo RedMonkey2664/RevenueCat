@@ -15,7 +15,19 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-PY="${PYTHON:-python}"
+# Whichever interpreter this machine calls Python.
+PY="${PYTHON:-}"
+if [ -z "$PY" ]; then
+  # Actually run each candidate: on Windows `python3` is often a Microsoft
+  # Store stub that exists on PATH and does nothing useful.
+  for c in python python3 py; do
+    if "$c" -c "import sys" >/dev/null 2>&1; then PY="$c"; break; fi
+  done
+fi
+if [ -z "$PY" ]; then
+  echo "No python found. Set PYTHON=/path/to/python and re-run." >&2
+  exit 1
+fi
 
 echo "==> Level integrity, crash windows, pause points, optimal moves"
 "$PY" tool/validation/validate_levels.py

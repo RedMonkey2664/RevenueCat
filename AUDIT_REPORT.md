@@ -97,6 +97,33 @@ duplicate, OHLC or volume problems across all 17 levels. Spot-checked
 against known history: Dot-com peak 2000-03-10, GFC peak 2007-10-09 and
 trough 2009-03-09, crypto winter −83%. All correct.
 
+### A-8 · MAJOR · fixed
+**Six unused packages were shipping**, including Firebase and
+`flutter_local_notifications`. Nothing in `lib/`, `test/` or `tool/`
+imported them. Firebase was also why the web build had to strip
+dependencies from `pubspec.yaml` and why the lockfile had to be reverted
+after every `pub get`. Removed; `publish_web.sh` is now just a build.
+
+### A-9 · MAJOR · fixed
+**A subscription paywall with no Terms or Privacy links** would fail App
+Store review. Added, with auto-renewal wording, plus an About and
+disclaimer screen and a Manage-subscription link. `PRIVACY.md` and
+`TERMS.md` are the source and render into the web build, so the links and
+the repository cannot drift.
+
+### A-10 · INFORMATIONAL · verified correct
+**The Daily Pivot clock.** Audited because a half-hour slip would pick a
+different Binance bar and could flip Yes to No silently. It is right: IST
+is a constant +5:30 with no daylight saving, 09:00 IST resolves to 03:30
+UTC and 17:00 IST to 11:30 UTC, resolution reads the 16:59 close, and every
+conversion goes through `toUtc()` so the device's timezone cannot move the
+day. Ten tests now hold it.
+
+### A-11 · MINOR · noted, not changed
+**The repo is not `dart format` clean** — 68 files predate it. Reformatting
+before submission would bury the real diffs, so CI runs analyze, test and
+validation but no format gate. Worth doing once the store work lands.
+
 ## Not yet audited
 
 Listed honestly rather than left silent. None is known to be broken; none
@@ -107,19 +134,17 @@ has been checked in this pass.
 - Blind-play leak hunt (1.2) beyond what the capture screenshots show.
 - Chart engine (1.3): indicator maths against reference implementations,
   degenerate series (1 candle, flat prices, NaN), `shouldRepaint`.
-- Daily Pivot (1.4): IST timezone handling, candle boundary at 17:00, vote
-  sealing across clock changes, strike fairness simulation (2.8).
+- Daily Pivot: vote sealing across clock changes, and the strike fairness
+  simulation (2.8). The clock itself is now verified — see A-10.
 - Time Machine maths (1.5, 2.7) against high-precision recomputation.
 - Live Markets (1.6): Yahoo 401/429/schema changes, currency mixing.
 - Persistence schema versioning and corrupt-JSON startup (1.8).
-- Dependency cleanup (1.9): Firebase and `flutter_local_notifications` are
-  still declared and unused.
 - Accessibility (1.10): text scaling, small screens, tap targets.
 - Endless and Custom Simulation validation (2.5, 2.6).
 - Nerve Profile axis correlation (2.4).
-- Everything in Phase 3: disclaimer screen, PRIVACY.md, TERMS.md,
-  DATA_SOURCES.md, STORE_LISTING.md, QA_CHECKLIST.md, DEMO_SCRIPT.md,
-  CHANGELOG.md, CI.
+- Store submission mechanics that need accounts or a Mac: sandbox purchase
+  runs (scripted in `docs/QA_CHECKLIST.md`), `flutter build ios`, icons,
+  screenshots, release signing.
 
 ## Needs owner decision
 
@@ -129,3 +154,47 @@ has been checked in this pass.
    `licence: unverified`. This blocks publishing, not building.
 3. **Ambiguous pause points** — 9 are now excluded from scoring. If you would
    rather they were graded leniently than skipped, say so.
+
+## Final gate
+
+| Command | Result |
+|---|---|
+| `flutter analyze` | no issues |
+| `flutter test` | 208 passing |
+| `bash tool/validation/run_all.sh` | 17 levels, 0 data problems; report byte-identical to the committed one |
+| `bash tool/publish_web.sh` | builds, 24 MB, includes `/privacy.html` and `/terms.html` |
+| `flutter build apk --release` | **not run** — no Android SDK in this environment |
+| `flutter build ios` | **not run** — needs a Mac |
+
+## Tally
+
+| | Count |
+|---|---|
+| Findings recorded | 11 |
+| Blockers fixed | 1 |
+| Majors fixed | 5 |
+| Minors noted | 1 |
+| Verified correct, no change | 3 |
+| Needs owner decision | 4 |
+
+### Needs owner decision, most important first
+
+1. **Bundled data licensing** — blocks publishing. Options in
+   `docs/DATA_SOURCES.md`; recommendation is to re-import the equity levels
+   from a redistributable source.
+2. **App icon** — still Flutter's default, which is third-party branding
+   Apple will reject.
+3. **Android release signing** — still the debug key.
+4. **A-4, the five levels where always-Hold scores 100.**
+
+## Deliverables
+
+`AUDIT_REPORT.md` (this file) · `docs/VALIDATION_REPORT.md` ·
+`tool/validation/` · `docs/DATA_SOURCES.md` · `docs/QA_CHECKLIST.md` ·
+`docs/DEMO_SCRIPT.md` · `docs/STORE_LISTING.md` · `PRIVACY.md` ·
+`TERMS.md` · `CHANGELOG.md` · `.github/workflows/ci.yml` · updated
+`README.md`.
+
+Not produced: `docs/SCORING.md` (the formula is documented in
+`discipline_score.dart` and measured in the validation report) and the
+re-fetch validator (needs network and settled provider terms).

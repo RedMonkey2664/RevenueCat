@@ -15,6 +15,30 @@ Points only.
 
 Built for RevenueCat Shipaton 2026.
 
+## Judges: quick start
+
+Three ways to see it working, fastest first.
+
+1. **Open the web preview** — <https://revenue-cat-redmonkey2664s-projects.vercel.app>.
+   The first load after a deploy is slow while the CDN warms; give it a
+   moment rather than reloading.
+2. **Run it** — `flutter pub get && flutter run`. No keys needed; the store
+   reports itself as not connected and Pro stays locked.
+3. **Demo video** — not recorded yet; the shot list is in
+   [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
+**A 60-second tour.** Simulator tab, tap the amber PLAY node, START RUN.
+Let the tape roll to the first halt and sit with it — that pause is the
+product. Pick any of the three calls, then press through to the Debrief:
+the Discipline Score, the call breakdown with what price actually did next,
+and YOUR PATTERN comparing this run with earlier ones. Then tap a PRO node
+to see the RevenueCat paywall.
+
+**Where the RevenueCat work is:**
+[revenuecat_service.dart](lib/core/services/revenuecat_service.dart) behind
+the [`PurchasesService`](lib/core/services/purchases_service.dart) seam;
+details under [RevenueCat integration](#revenuecat-integration).
+
 ## Features
 
 **Behavioural Simulator**
@@ -49,9 +73,15 @@ Built for RevenueCat Shipaton 2026.
 - **Mascot:** a black kitten in a pearl-and-sapphire tiara on the loading screens, the
   first onboarding slide and the boot splash.
 
-**Not built yet:** the Daily Pivot's shared crowd backend (the crowd split is a labelled
-local placeholder), the Pivot's 09:00 and 17:00 notifications, and real-time NSE/BSE
-through Kotak Neo.
+**Not built yet:** the Daily Pivot's shared crowd backend (the crowd split is a
+labelled local placeholder — the app shows "too few votes" rather than
+inventing a percentage), the Pivot's 09:00 and 17:00 notifications, and
+real-time NSE/BSE through Kotak Neo.
+
+**Before it can be published:** the bundled level data's redistribution
+rights are unverified, the app icon is still Flutter's default, and Android
+release builds sign with the debug key. The full list, with what has been
+audited and what has not, is in [AUDIT_REPORT.md](AUDIT_REPORT.md).
 
 ## Tech Stack
 
@@ -63,13 +93,16 @@ through Kotak Neo.
 | Storage | `shared_preferences`: progress, scores, run history |
 | Purchases | RevenueCat (`purchases_flutter` 10.10.1) |
 | Media | `video_player` for the mascot clips; `share_plus` for share cards |
+| Links | `url_launcher` for the Terms, Privacy and Manage-subscription links |
 | Networking | `http`, calling public market APIs at runtime |
 | Market data | Binance (crypto, real time); Yahoo Finance (US and Indian equity, delayed) |
 | Fonts | Inter and JetBrains Mono, bundled |
 | Web preview | Static Flutter web build hosted on Vercel |
 
-Declared but not used yet: Firebase (Firestore and Cloud Functions, planned for the
-Pivot crowd backend) and `flutter_local_notifications` (planned for Pivot reminders).
+Firebase and `flutter_local_notifications` were removed in September: nothing
+imported them, and Firebase was what stopped the web build compiling. The
+Pivot crowd backend and the reminders are still planned — see
+[ROADMAP.md](ROADMAP.md).
 
 ## Installation
 
@@ -96,20 +129,16 @@ flutter run                                                  # store disconnecte
 flutter run --dart-define-from-file=config/revenuecat.json   # with RevenueCat
 ```
 
-**In a browser.** Firebase doesn't compile for web on this Dart SDK, so build with the
-publish script, which leaves Firebase out, then serve the output folder:
+**In a browser:**
 
 ```sh
 bash tool/publish_web.sh
 python -m http.server 8080 --directory web_dist              # open http://localhost:8080
 ```
 
-`flutter pub get` adds the Firebase packages back into `pubspec.lock`, so restore the
-committed lock (`git checkout -- pubspec.lock`) before committing.
-
 What doesn't work in a browser:
 - **US and Indian equity quotes:** Yahoo sends no CORS header.
-- **File sharing and local notifications.**
+- **File sharing.**
 
 Everything else works, including the Simulator, Time Machine and crypto prices.
 
@@ -117,8 +146,13 @@ Everything else works, including the Simulator, Time Machine and crypto prices.
 
 ```sh
 flutter analyze
-flutter test
+flutter test                        # 208 tests
+bash tool/validation/run_all.sh     # re-checks every level and the scoring
 ```
+
+The validation run regenerates [docs/VALIDATION_REPORT.md](docs/VALIDATION_REPORT.md)
+from the bundled data, with no network, so its claims can be rechecked by
+anyone with the repo.
 
 ## RevenueCat integration
 
@@ -244,6 +278,16 @@ values.
   ships on iOS and Android; this is the same app as a web build, with the limits listed
   under [Running locally](#running-locally).
 - **Demo video:** not recorded yet.
+
+## Legal
+
+- [Privacy Policy](PRIVACY.md) · [Terms of Use](TERMS.md) — also served at
+  `/privacy.html` and `/terms.html` on the web preview, which is where the
+  paywall links.
+- [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) — every dataset and its
+  licence status, including the ones that are not cleared.
+- HistoX is an educational simulator. Virtual capital, no real trades, not
+  investment advice.
 
 ## License
 
