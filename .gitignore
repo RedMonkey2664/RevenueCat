@@ -46,3 +46,9 @@ app.*.map.json
 
 # RevenueCat keys for --dart-define-from-file; the example is committed.
 config/revenuecat.json
+
+# Design exports kept locally, not part of the app.
+*.dc.html
+design-handoff.html
+market-nerve-design-brief.html
+wireframes.html
