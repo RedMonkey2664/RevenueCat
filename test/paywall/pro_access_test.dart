@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:histox/core/services/purchases_service.dart';
@@ -92,6 +93,26 @@ void main() {
     // An expiry takes it away again.
     store.changes.add(false);
     await Future<void>.delayed(Duration.zero);
+    expect(c.read(proAccessProvider).hasPro, isFalse);
+  });
+
+  test('a release build can never grant Pro without a store', () {
+    // The guard is a compile-time constant, so this locks its definition:
+    // if someone loosens it, a release build shipped without RevenueCat keys
+    // would hand the whole campaign and the full profile away for free.
+    expect(kPreviewUnlockAllowed, !kReleaseMode);
+  });
+
+  test('the preview unlock is refused once a store is connected', () {
+    final ProviderContainer c = ProviderContainer(
+      overrides: [
+        purchasesServiceProvider.overrideWithValue(_ConnectedStore()),
+      ],
+    );
+    addTearDown(c.dispose);
+
+    c.read(proAccessProvider.notifier).unlockPreview();
+    expect(c.read(proAccessProvider).previewUnlocked, isFalse);
     expect(c.read(proAccessProvider).hasPro, isFalse);
   });
 }

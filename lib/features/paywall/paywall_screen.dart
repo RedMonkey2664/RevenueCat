@@ -139,6 +139,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         .where((LevelManifestEntry e) => !e.isFree && e.dataStatus.isPlayable)
         .length;
     final bool storeReady = store.isConfigured;
+    // Never in a release build: see kPreviewUnlockAllowed.
+    final bool canPreview = !storeReady && kPreviewUnlockAllowed;
     final bool pricesLoaded = _prices.isNotEmpty;
 
     return Scaffold(
@@ -285,7 +287,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   // PREVIEW BUILDS ONLY — see ProAccess.previewUnlocked. It
                   // exists because there is no way to buy yet, and it
                   // disappears the moment a store is connected.
-                  if (!storeReady) ...<Widget>[
+                  if (canPreview) ...<Widget>[
                     const SizedBox(height: AppSpacing.sm + 4),
                     HudButton(
                       label: 'PREVIEW BUILD · CONTINUE WITHOUT PRO',
