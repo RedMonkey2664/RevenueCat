@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/legal.dart';
 import '../../app/theme.dart';
 import '../../app/widgets/hud.dart';
 import '../../core/services/purchases_service.dart';
@@ -312,7 +313,38 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                         onTap: _restore,
                       ),
                     ),
-                  const SizedBox(height: AppSpacing.md),
+                  // Both links are an App Store requirement on a
+                  // subscription screen, and the renewal wording with them.
+                  const SizedBox(height: AppSpacing.sm),
+                  Center(
+                    child: Text(
+                      'Auto-renewing subscription. Cancel anytime in your '
+                      'store account; it renews unless cancelled at least 24 '
+                      'hours before the period ends.',
+                      textAlign: TextAlign.center,
+                      style: AppText.body(size: 11, color: AppColors.textFaint),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const LegalLink(
+                        label: 'Terms of Use',
+                        url: Legal.termsUrl,
+                      ),
+                      Text(
+                        '·',
+                        style: AppText.body(
+                          size: 12,
+                          color: AppColors.textFaint,
+                        ),
+                      ),
+                      const LegalLink(
+                        label: 'Privacy Policy',
+                        url: Legal.privacyUrl,
+                      ),
+                    ],
+                  ),
                   Center(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,

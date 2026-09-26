@@ -11,6 +11,10 @@
 # for environment reasons. `build/` stays gitignored (Flutter's default);
 # web_dist/ is the explicit, reviewable artefact.
 #
+# Firebase used to be stripped here before every build because it would not
+# compile for web. It is no longer a dependency at all, so the build is now
+# just a build.
+#
 # This is a PREVIEW. The product ships on iOS and Android. What does NOT work
 # in a browser, and why:
 #
@@ -18,7 +22,7 @@
 #     the browser blocks the request and those rows read "unavailable". Crypto
 #     works, because Binance sends "Access-Control-Allow-Origin: *". There is
 #     no CORS on iOS or Android, where every market resolves.
-#   - share_plus file sharing, and local notifications.
+#   - share_plus file sharing.
 #
 # Fully functional in a browser: the Simulator (campaign and Endless run on
 # bundled data), Time Machine, and the crypto half of Live Markets and the
@@ -28,23 +32,13 @@ set -euo pipefail
 
 FLUTTER="${FLUTTER:-flutter}"
 
-echo "==> Excluding Firebase for the web build"
-# firebase_core_web 3.11.0 does not compile against this Dart SDK ("The method
-# 'isA' isn't defined for the type 'Object'"), and no newer version resolves.
-# Nothing in the app touches Firebase yet — the Daily Pivot is unbuilt — so it
-# is excluded here and restored immediately afterwards. Android and iOS keep it.
-cp pubspec.yaml pubspec.yaml.orig
-trap 'mv -f pubspec.yaml.orig pubspec.yaml 2>/dev/null || true' EXIT
-
-sed -i.tmp \
-  -e 's/^  firebase_core:/  #web-build-disabled firebase_core:/' \
-  -e 's/^  cloud_firestore:/  #web-build-disabled cloud_firestore:/' \
-  -e 's/^  firebase_auth:/  #web-build-disabled firebase_auth:/' \
-  pubspec.yaml
-rm -f pubspec.yaml.tmp
-
 echo "==> Building"
 "$FLUTTER" pub get
+
+# The legal pages the paywall links to are generated from PRIVACY.md and
+# TERMS.md, so the app's links and the repo's documents cannot drift.
+"${PYTHON:-python}" tool/build_legal_pages.py
+
 "$FLUTTER" build web --release --no-wasm-dry-run
 
 echo "==> Assembling web_dist/"
