@@ -1,0 +1,57 @@
+name: CI
+
+# Analyzer, tests and the data validation on every push and pull request.
+# No secrets are used: the app builds and every test runs without RevenueCat
+# keys, which is also what proves the release-build guard has somewhere safe
+# to fall back to.
+
+on:
+  push:
+    branches: [main, submission-prep]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  flutter:
+    name: analyze and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # No `dart format` gate: 68 files predate one and reformatting them
+      # right before submission would bury the real diffs. Worth doing once
+      # the store work is done.
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  validation:
+    name: level and scoring validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Offline: reads the bundled data only, so it cannot be broken by a
+      # provider being down or rate-limiting the runner.
+      - name: Validate levels and the Discipline Score
+        run: bash tool/validation/run_all.sh
+
+      - name: Fail if the committed report is out of date
+        run: git diff --exit-code docs/VALIDATION_REPORT.md

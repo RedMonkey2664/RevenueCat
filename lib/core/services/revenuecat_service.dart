@@ -31,7 +31,9 @@ abstract final class RevenueCatKeys {
 
   /// The key for the platform this build is running on, or null.
   static String? current() {
-    if (test.isNotEmpty) return test;
+    // The Test Store never takes real money, so a release build must not
+    // be able to reach it however the build was invoked.
+    if (test.isNotEmpty && !kReleaseMode) return test;
     final String key = kIsWeb
         ? web
         : switch (defaultTargetPlatform) {

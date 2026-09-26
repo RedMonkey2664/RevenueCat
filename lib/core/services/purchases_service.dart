@@ -94,6 +94,14 @@ class StoreNotConnectedService implements PurchasesService {
   Stream<bool> get proChanges => const Stream<bool>.empty();
 }
 
+/// Whether this build may grant Pro without a store.
+///
+/// Debug and profile only. A release build with no RevenueCat key would
+/// otherwise fall back to [StoreNotConnectedService], show the preview
+/// button and hand every paying feature away for free — the whole campaign
+/// and the full Nerve Profile — to anyone who installed it.
+const bool kPreviewUnlockAllowed = !kReleaseMode;
+
 final Provider<PurchasesService> purchasesServiceProvider =
     Provider<PurchasesService>((Ref ref) => const StoreNotConnectedService());
 
@@ -110,7 +118,8 @@ class ProAccess {
   /// A real `pro` entitlement from the store.
   final bool purchased;
 
-  /// PREVIEW BUILDS ONLY. With no store connected there is no way to buy
+  /// PREVIEW AND DEBUG BUILDS ONLY ([kPreviewUnlockAllowed]). With no store
+  /// connected there is no way to buy
   /// Pro, and gating two-thirds of the campaign behind a purchase nobody can
   /// make would turn the demo into a locked door. The paywall therefore
   /// offers "continue without Pro" — but only while
@@ -148,8 +157,10 @@ class ProAccessNotifier extends Notifier<ProAccess> {
     return ProAccess.none;
   }
 
-  /// See [ProAccess.previewUnlocked]. A no-op once a store is connected.
+  /// See [ProAccess.previewUnlocked]. A no-op once a store is connected,
+  /// and in a release build whatever the store is doing.
   void unlockPreview() {
+    if (!kPreviewUnlockAllowed) return;
     if (ref.read(purchasesServiceProvider).isConfigured) return;
     state = ProAccess(purchased: state.purchased, previewUnlocked: true);
   }

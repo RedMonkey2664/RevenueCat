@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../app/theme.dart';
+import 'about_screen.dart';
 import '../../app/widgets/discipline_badge.dart';
 import '../../app/widgets/hud.dart';
 import '../../app/widgets/nerve_avatar.dart';
@@ -926,6 +927,16 @@ class _Account extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+        HudButton(
+          label: 'ABOUT & DISCLAIMER',
+          style: HudButtonStyle.ghost,
+          height: 48,
+          fontSize: 13,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm + 4),
         if (store.isConfigured) ...<Widget>[
           HudButton(
             label: 'RESTORE PURCHASES',
